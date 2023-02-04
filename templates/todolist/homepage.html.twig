@@ -1,0 +1,36 @@
+{% extends'base.html.twig' %}
+
+{% block title %}ToDoList{% endblock %}
+
+{% block body %}
+    <div class="container">
+        <h1 class="d-inline me-3">{{ title }}</h1>
+        <div class="row mt-5">
+            <div class="col-12 col-md-8 ps-5">
+                <h2 class="mb-4">Tasks to do: </h2>
+                {% for task in tasks %}
+                <li>
+                    {{ task.singleTask }} - {{ task.done|upper }}
+                    <button type="button" class="btn-outline-danger" id="delete_task_button"><i class="fas fa-minus"></i></button>
+                </li>
+                {% endfor %}
+                <br>
+                <input type="text" class="form-control form-control-sm" id="add_task_input" placeholder="Your New Task">
+                <button type="button" class="btn btn-success" id="add_task_button"><i class="fas fa-plus"></i> Add task</button>
+            </div>
+        </div>
+    </div>
+    <div class="container">
+        <div class="row mt-5">
+            <div class="col-12 col-md-8 ps-5">
+                <h2 class="mb-4">Tasks done: </h2>
+                {% for taskDone in tasksDone %}
+                    <li>
+                        {{ taskDone.singleTask }} - {{ taskDone.done|upper }}
+                        <button type="button" class="btn-outline-danger" id="delete_task_button"><i class="fas fa-minus"></i></button>
+                    </li>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+{% endblock %}
