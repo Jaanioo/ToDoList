@@ -10,8 +10,8 @@
                 <h2 class="mb-4">Tasks to do: </h2>
                 {% for task in tasks %}
                 <li>
-                    {{ task.taskString }} -
-                    {% if task.taskBool  %}
+                    {{ task.description }} -
+                    {% if task.completed  %}
                         {{ 'TRUE' }}
                     {% else %}
                         {{ 'FALSE' }}

@@ -5,9 +5,7 @@ namespace App\Controller;
 use App\Entity\Task;
 use App\Entity\TasksEntity;
 use Doctrine\Persistence\ManagerRegistry;
-use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -65,24 +63,20 @@ class TasksAPIController extends AbstractController
         return $this->json('Created new task successfully with id: ' . $task->getId());
     }
 
-    #[Route('/api/task/{id}/edit', name: 'task_edit', methods: ['PUT'])]
+    #[Route('/api/task/{id}/edit', name: 'task_edit', methods: ['PUT', 'PATCH'])]
     public function editTask(ManagerRegistry $registry, Request $request, int $id) {
         $entityManager = $registry->getManager();
-        $task = $entityManager->getRepository(Task::class)->find($id);
+        $task = $entityManager->getRepository(Task::class)->findOneBy(['id' => $id]);
 
         if (!$task) {
             return $this->json('No task found', 404);
         }
 
-        $task->setDescription($request->request->get('description'));
-        $task->setCompleted($request->request->get('completed'));
+        $parametr = json_decode($request->getContent(), true);
+        $task->setDescription($parametr['description']);
+        $task->setCompleted($parametr['completed']);
         $entityManager->flush();
 
-//        $data = [
-//            'id' => $task->getId(),
-//            'description' => $task->getDescription(),
-//            'completed' => $task->isCompleted(),
-//        ];
         return $this->json('Edited a task successfully with id: ' . $id);
     }
 
