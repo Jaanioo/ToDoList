@@ -4,11 +4,11 @@ namespace App\Controller;
 
 use App\Entity\Task;
 use App\Entity\TasksEntity;
+use App\Exceptions\TaskNotFoundException;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 class TasksAPIController extends AbstractController
@@ -32,11 +32,13 @@ class TasksAPIController extends AbstractController
             }
 
             //return $this->json($data);
-            return new JsonResponse($data);
 
         } catch (\Exception $exception) {
             return new JsonResponse('An error occurred: ' . $exception->getMessage());
         }
+
+        return new JsonResponse($data);
+
     }
 
     #[Route('/api/task/{id}', name: 'task_show_single', methods: ['GET'])]
@@ -48,7 +50,7 @@ class TasksAPIController extends AbstractController
                 ->find($id);
 
             if (!$task) {
-                return $this->json('No task found', 404);
+                throw new TaskNotFoundException($id);
             }
 
             $data = [
@@ -57,12 +59,12 @@ class TasksAPIController extends AbstractController
                 'completed' => $task->isCompleted(),
             ];
 
-            //return $this->json($data);
-            return new JsonResponse($data);
-
-        } catch (\Exception $exception) {
-            return new JsonResponse('An error occurred: ' . $exception->getMessage());
+        } catch (TaskNotFoundException $exception) {
+            return new JsonResponse(['An error occurred: ' => $exception->getMessage()], 404);
         }
+
+        return new JsonResponse($data);
+
     }
 
     #[Route('/api/task/new', name: 'task_new', methods: ['POST'])]
@@ -79,11 +81,13 @@ class TasksAPIController extends AbstractController
             $entityManager->flush();//send data
 
             //return $this->json('Created new task successfully with id: ' . $task->getId());
-            return new JsonResponse('Created new task successfully with id: ' . $task->getId());
 
         } catch (\Exception $exception) {
             return new JsonResponse('An error occurred: ' . $exception->getMessage());
         }
+
+        return new JsonResponse('Created new task successfully with id: ' . $task->getId());
+
     }
 
     #[Route('/api/task/{id}/edit', name: 'task_edit', methods: ['PUT', 'PATCH'])]
@@ -94,7 +98,7 @@ class TasksAPIController extends AbstractController
             $task = $entityManager->getRepository(Task::class)->findOneBy(['id' => $id]);
 
             if (!$task) {
-                return $this->json('No task found', 404);
+                throw new TaskNotFoundException($id);
             }
 
             $parametr = json_decode($request->getContent(), true);
@@ -103,11 +107,13 @@ class TasksAPIController extends AbstractController
             $entityManager->flush();
 
             //return $this->json('Edited a task successfully with id: ' . $id);
-            return new JsonResponse('Edited a task successfully with id: ' . $id);
 
-        } catch (\Exception $exception) {
-            return new JsonResponse('An error occurred: ' . $exception->getMessage());
+        } catch (TaskNotFoundException $exception) {
+            return new JsonResponse(['An error occurred: ' => $exception->getMessage()], 404);
         }
+
+        return new JsonResponse('Edited a task successfully with id: ' . $id);
+
     }
 
     #[Route('api/task/{id}/delete', name: 'task_delete', methods: ['DELETE'])]
@@ -118,17 +124,19 @@ class TasksAPIController extends AbstractController
             $task = $entityManager->getRepository(Task::class)->find($id);
 
             if (!$task) {
-                return $this->json('No task found', 404);
+                throw new TaskNotFoundException($id);
             }
 
             $entityManager->remove($task);
             $entityManager->flush();
 
             //return $this->json('Deleted a task successfully with id: ' . $id);
-            return new JsonResponse('Deleted a task successfully with id: ' . $id);
 
-        } catch (\Exception $exception) {
-            return new JsonResponse('An error occurred: ' . $exception->getMessage());
+        } catch (TaskNotFoundException $exception) {
+            return new JsonResponse(['An error occurred: ' => $exception->getMessage()], 404);
         }
+
+        return new JsonResponse('Deleted a task successfully with id: ' . $id);
+
     }
 }
