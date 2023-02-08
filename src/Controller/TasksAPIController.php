@@ -6,6 +6,7 @@ use App\Entity\Task;
 use App\Entity\TasksEntity;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -13,85 +14,121 @@ use Symfony\Component\Routing\Annotation\Route;
 class TasksAPIController extends AbstractController
 {
     #[Route('/api/task',name: 'task_index', methods: ['GET'])]
-    public function getAllTask(ManagerRegistry $registry): Response {
-        $tasks = $registry
-            ->getRepository(Task::class)
-            ->findAll();
+    public function getAllTask(ManagerRegistry $registry): JsonResponse {
+        try {
 
-        $data = [];
+            $tasks = $registry
+                ->getRepository(Task::class)
+                ->findAll();
 
-        foreach ($tasks as $task) {
-            $data[] = [
+            $data = [];
+
+            foreach ($tasks as $task) {
+                $data[] = [
+                    'id' => $task->getId(),
+                    'description' => $task->getDescription(),
+                    'completed' => $task->isCompleted(),
+                ];
+            }
+
+            //return $this->json($data);
+            return new JsonResponse($data);
+
+        } catch (\Exception $exception) {
+            return new JsonResponse('An error occurred: ' . $exception->getMessage());
+        }
+    }
+
+    #[Route('/api/task/{id}', name: 'task_show_single', methods: ['GET'])]
+    public function getSingleTask(ManagerRegistry $registry, int $id): JsonResponse {
+        try {
+
+            $task = $registry
+                ->getRepository(Task::class)
+                ->find($id);
+
+            if (!$task) {
+                return $this->json('No task found', 404);
+            }
+
+            $data = [
                 'id' => $task->getId(),
                 'description' => $task->getDescription(),
                 'completed' => $task->isCompleted(),
             ];
+
+            //return $this->json($data);
+            return new JsonResponse($data);
+
+        } catch (\Exception $exception) {
+            return new JsonResponse('An error occurred: ' . $exception->getMessage());
         }
-
-        return $this->json($data);
-    }
-
-    #[Route('/api/task/{id}', name: 'task_show_single', methods: ['GET'])]
-    public function getSingleTask(ManagerRegistry $registry, int $id): Response {
-        $task = $registry
-            ->getRepository(Task::class)
-            ->find($id);
-
-        if (!$task) {
-            return $this->json('No task found', 404);
-        }
-
-        $data = [
-            'id' => $task->getId(),
-            'description' => $task->getDescription(),
-            'completed' => $task->isCompleted(),
-        ];
-        return $this->json($data);
     }
 
     #[Route('/api/task/new', name: 'task_new', methods: ['POST'])]
-    public function newTask(ManagerRegistry $registry, Request $request): Response {
-        $entityManager = $registry->getManager();
+    public function newTask(ManagerRegistry $registry, Request $request): JsonResponse {
+        try {
 
-        $task = new Task();
-        $task->setDescription($request->request->get('description'));
-        $task->setCompleted($request->request->get('completed'));
+            $entityManager = $registry->getManager();
 
-        $entityManager->persist($task);// prepare symfony to be ready for make sth with data
-        $entityManager->flush();//send data
+            $task = new Task();
+            $task->setDescription($request->request->get('description'));
+            $task->setCompleted($request->request->get('completed'));
 
-        return $this->json('Created new task successfully with id: ' . $task->getId());
+            $entityManager->persist($task);// prepare symfony to be ready for make sth with data
+            $entityManager->flush();//send data
+
+            //return $this->json('Created new task successfully with id: ' . $task->getId());
+            return new JsonResponse('Created new task successfully with id: ' . $task->getId());
+
+        } catch (\Exception $exception) {
+            return new JsonResponse('An error occurred: ' . $exception->getMessage());
+        }
     }
 
     #[Route('/api/task/{id}/edit', name: 'task_edit', methods: ['PUT', 'PATCH'])]
     public function editTask(ManagerRegistry $registry, Request $request, int $id) {
-        $entityManager = $registry->getManager();
-        $task = $entityManager->getRepository(Task::class)->findOneBy(['id' => $id]);
+        try {
 
-        if (!$task) {
-            return $this->json('No task found', 404);
+            $entityManager = $registry->getManager();
+            $task = $entityManager->getRepository(Task::class)->findOneBy(['id' => $id]);
+
+            if (!$task) {
+                return $this->json('No task found', 404);
+            }
+
+            $parametr = json_decode($request->getContent(), true);
+            $task->setDescription($parametr['description']);
+            $task->setCompleted($parametr['completed']);
+            $entityManager->flush();
+
+            //return $this->json('Edited a task successfully with id: ' . $id);
+            return new JsonResponse('Edited a task successfully with id: ' . $id);
+
+        } catch (\Exception $exception) {
+            return new JsonResponse('An error occurred: ' . $exception->getMessage());
         }
-
-        $parametr = json_decode($request->getContent(), true);
-        $task->setDescription($parametr['description']);
-        $task->setCompleted($parametr['completed']);
-        $entityManager->flush();
-
-        return $this->json('Edited a task successfully with id: ' . $id);
     }
 
     #[Route('api/task/{id}/delete', name: 'task_delete', methods: ['DELETE'])]
     public function deleteTask(ManagerRegistry $registry, int $id) {
-        $entityManager = $registry->getManager();
-        $task = $entityManager->getRepository(Task::class)->find($id);
+        try {
 
-        if (!$task) {
-            return $this->json('No task found', 404);
+            $entityManager = $registry->getManager();
+            $task = $entityManager->getRepository(Task::class)->find($id);
+
+            if (!$task) {
+                return $this->json('No task found', 404);
+            }
+
+            $entityManager->remove($task);
+            $entityManager->flush();
+
+            //return $this->json('Deleted a task successfully with id: ' . $id);
+            return new JsonResponse('Deleted a task successfully with id: ' . $id);
+
+        } catch (\Exception $exception) {
+            return new JsonResponse('An error occurred: ' . $exception->getMessage());
         }
-
-        $entityManager->remove($task);
-        $entityManager->flush();
-
-        return $this->json('Deleted a task successfully with id: ' . $id);
     }
 }
