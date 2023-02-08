@@ -10,13 +10,22 @@
                 <h2 class="mb-4">Tasks to do: </h2>
                 {% for task in tasks %}
                 <li>
-                    {{ task.singleTask }} - {{ task.done|upper }}
-                    <button type="button" class="btn-outline-danger" id="delete_task_button"><i class="fas fa-minus"></i></button>
+                    {{ task.description }} -
+                    {% if task.completed  %}
+                        {{ 'TRUE' }}
+                    {% else %}
+                        {{ 'FALSE' }}
+                    {% endif %}
+                    <form action="{{ path('app_list_deletetask', {'id': task.id}) }}">
+                        <input type="submit" value="Delete">
+                    </form>
                 </li>
                 {% endfor %}
                 <br>
-                <input type="text" class="form-control form-control-sm" id="add_task_input" placeholder="Your New Task">
-                <button type="button" class="btn btn-success" id="add_task_button"><i class="fas fa-plus"></i> Add task</button>
+                <form action="{{ path('app_list_newtask') }}" method="POST">
+                    <input type="text" class="form-control form-control-sm" name="newTask" placeholder="Your New Task">
+                    <button type="submit" class="btn btn-success" id="add_task_button"><i class="fas fa-plus"></i> Add task</button>
+                </form>
             </div>
         </div>
     </div>
