@@ -35,7 +35,7 @@ class ListController extends AbstractController
     }
 
     #[Route('/new', name: 'app_list_newtask')]
-    public function newTask(EntityManagerInterface $entityManager, Request $request) {
+    public function newTask(EntityManagerInterface $entityManager, Request $request): Response {
 
         $task = new Task();
         $stringText = $request->request->get('newTask');
