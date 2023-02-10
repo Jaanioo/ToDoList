@@ -5,8 +5,6 @@ namespace App\Repository;
 use App\Entity\Task;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
-use App\Exceptions\TaskNotFoundException;
-use Symfony\Component\HttpFoundation\JsonResponse;
 
 /**
  * @extends ServiceEntityRepository<Task>
@@ -19,16 +17,6 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 class TaskRepository extends ServiceEntityRepository
 {
 
-    public function findOneById(int $id): ?Task
-    {
-        $task = $this->getRepository(Task::class)->find($id);
-
-        if (!$task) {
-            throw new TaskNotFoundException($id);
-        }
-
-        return new JsonResponse($task);
-    }
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Task::class);
