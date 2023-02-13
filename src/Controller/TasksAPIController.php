@@ -68,7 +68,7 @@ class TasksAPIController extends AbstractController
 
     }
 
-    #[Route('/api/task/{id}/edit', name: 'task_edit', methods: ['PUT', 'PATCH'])]
+    #[Route('/api/task/{id}', name: 'task_edit', methods: ['PUT', 'PATCH'])]
     public function editTask(Request $request, int $id): JsonResponse
     {
         try
@@ -84,7 +84,7 @@ class TasksAPIController extends AbstractController
 
     }
 
-    #[Route('api/task/{id}/delete', name: 'task_delete', methods: ['DELETE'])]
+    #[Route('api/task/{id}', name: 'task_delete', methods: ['DELETE'])]
     public function deleteTask(int $id): JsonResponse
     {
         try
