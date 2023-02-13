@@ -4,8 +4,6 @@ namespace App\Factory;
 
 use App\DTO\TaskDTO;
 use App\Entity\Task;
-use App\Repository\TaskRepository;
-use Symfony\Component\HttpFoundation\Request;
 
 class TaskDTOFactory
 {
