@@ -5,10 +5,11 @@ namespace App\Service;
 use App\Entity\Task;
 use App\Exception\TaskNotFoundException;
 use App\Factory\TaskDTOFactory;
+use App\Interface\TaskServiceInterface;
 use App\Repository\TaskRepository;
 use Symfony\Component\HttpFoundation\Request;
 
-class TaskService
+class TaskService implements TaskServiceInterface
 {
 
     //old PHP version

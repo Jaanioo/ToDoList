@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\TasksEntity;
 use App\Exception\TaskNotFoundException;
+use App\Interface\TaskServiceInterface;
 use App\Repository\TaskRepository;
 use App\Service\TaskService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -15,12 +16,14 @@ use Symfony\Component\Routing\Annotation\Route;
 class TasksAPIController extends AbstractController
 {
     private TaskService $taskService;
-    private TaskRepository $repository;
+    private TaskRepository $taskRepository;
+    private TaskServiceInterface $taskService1;
 
-    public function __construct(TaskService $taskService, TaskRepository $repository)
+    public function __construct(TaskServiceInterface $taskService1, TaskService $taskService, TaskRepository $taskRepository)
     {
+        $this->taskRepository = $taskRepository;
+        $this->taskService1 = $taskService1;
         $this->taskService = $taskService;
-        $this->repository = $repository;
     }
 
     #[Route('/api/task',name: 'task_index', methods: ['GET'])]
@@ -28,7 +31,7 @@ class TasksAPIController extends AbstractController
     {
         try
         {
-            $data = $this->taskService->getAllTaskDTO();
+            $data = $this->taskService1->getAllTaskDTO();
 
         } catch (\Exception $exception)
         {
@@ -70,7 +73,7 @@ class TasksAPIController extends AbstractController
     }
 
     #[Route('/api/task/{id}/edit', name: 'task_edit', methods: ['PUT', 'PATCH'])]
-    public function editTask(Request $request, int $id)
+    public function editTask(Request $request, int $id): JsonResponse
     {
         try
         {
@@ -86,7 +89,7 @@ class TasksAPIController extends AbstractController
     }
 
     #[Route('api/task/{id}/delete', name: 'task_delete', methods: ['DELETE'])]
-    public function deleteTask(int $id)
+    public function deleteTask(int $id): JsonResponse
     {
         try
         {
