@@ -6,7 +6,6 @@ use App\Entity\Task;
 use App\Exception\TaskNotFoundException;
 use App\Factory\TaskDTOFactory;
 use App\Interface\TaskRepositoryInterface;
-use App\Repository\TaskRepository;
 use Symfony\Component\HttpFoundation\Request;
 
 class TaskService
@@ -17,7 +16,7 @@ class TaskService
 //    private TaskRepository $repository;
     public function __construct(
         private readonly TaskDTOFactory $taskDTOFactory,
-        private readonly TaskRepository $repository)
+        private readonly TaskRepositoryInterface $repository)
     {
 
         //old PHP version
@@ -25,11 +24,10 @@ class TaskService
 //        $this->repository = $repository;
     }
 
-    public function getAllTaskDTO(TaskRepositoryInterface $taskRepository): array
+    public function getAllTaskDTO(): array
     {
         // Use TaskRepository instead ManagerRegistry because it's more specified
-        //$tasks = $this->repository->findAll();
-        $tasks = $taskRepository->findAll();
+        $tasks = $this->repository->findAll();
 
         $data = [];
 
@@ -44,10 +42,9 @@ class TaskService
     /**
      * @throws TaskNotFoundException
      */
-    public function getSingleTaskDTO(int $id, TaskRepositoryInterface $taskRepository): object
+    public function getSingleTaskDTO(int $id): object
     {
-        //$task = $this->repository->find($id);
-        $task = $taskRepository->find($id);
+        $task = $this->repository->find($id);
 
         if (!$task)
         {
@@ -57,14 +54,13 @@ class TaskService
         return $this->taskDTOFactory->getDTOFromTask($task);
     }
 
-    public function newTaskDTO(Request $request, TaskRepositoryInterface $taskRepository): object
+    public function newTaskDTO(Request $request): object
     {
         $task = new Task();
         $task->setDescription($request->get('description'));
         $task->setCompleted($request->get('completed'));
 
-        //$this->repository->save($task, true);
-        $taskRepository->save($task, true);
+        $this->repository->save($task, true);
 
         return $this->taskDTOFactory->getDTOFromTask($task);
     }
@@ -73,10 +69,9 @@ class TaskService
      * @throws TaskNotFoundException
      * @throws \JsonException
      */
-    public function editTaskDTO(Request $request, int $id, TaskRepositoryInterface $taskRepository): object
+    public function editTaskDTO(Request $request, int $id): object
     {
-        //$task = $this->repository->find($id);
-        $task = $taskRepository->find($id);
+        $task = $this->repository->find($id);
 
         if (!$task)
         {
@@ -86,8 +81,7 @@ class TaskService
         $parametr = json_decode($request->getContent(), true, 512, JSON_THROW_ON_ERROR);
         $task->setDescription($parametr['description']);
         $task->setCompleted($parametr['completed']);
-        //$this->repository->save($task, true);
-        $taskRepository->save($task, true);
+        $this->repository->save($task, true);
 
         return $this->taskDTOFactory->getDTOFromTask($task);
     }
@@ -95,18 +89,16 @@ class TaskService
     /**
      * @throws TaskNotFoundException
      */
-    public function deleteTaskDTO(int $id, TaskRepositoryInterface $taskRepository): int
+    public function deleteTaskDTO(int $id): int
     {
-        //$task = $this->repository->find($id);
-        $task = $taskRepository->find($id);
+        $task = $this->repository->find($id);
 
         if (!$task)
         {
             throw new TaskNotFoundException($id);
         }
 
-        //$this->repository->remove($task, true);
-        $taskRepository->remove($task, true);
+        $this->repository->remove($task, true);
 
         return $id;
     }

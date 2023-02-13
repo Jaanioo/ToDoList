@@ -5,7 +5,6 @@ namespace App\Controller;
 use App\Exception\TaskNotFoundException;
 use App\Repository\TaskRepository;
 use App\Service\TaskService;
-use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
