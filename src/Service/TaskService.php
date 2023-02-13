@@ -24,7 +24,7 @@ class TaskService
 //        $this->repository = $repository;
     }
 
-    public function getAllTaskDTO(): array
+    public function getAllTasksDTO(): array
     {
         // Use TaskRepository instead ManagerRegistry because it's more specified
         $tasks = $this->repository->findAll();

@@ -3,7 +3,6 @@
 namespace App\Controller;
 
 use App\Exception\TaskNotFoundException;
-use App\Repository\TaskRepository;
 use App\Service\TaskService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -13,21 +12,17 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class TasksAPIController extends AbstractController
 {
-    private TaskService $taskService;
-    private TaskRepository $taskRepository;
 
-    public function __construct(TaskService $taskService, TaskRepository $taskRepository)
+    public function __construct(private readonly TaskService $taskService)
     {
-        $this->taskRepository = $taskRepository;
-        $this->taskService = $taskService;
     }
 
     #[Route('/api/task',name: 'task_index', methods: ['GET'])]
-    public function getAllTask(): JsonResponse
+    public function getAllTasks(): JsonResponse
     {
         try
         {
-            $data = $this->taskService->getAllTaskDTO($this->taskRepository);
+            $data = $this->taskService->getAllTasksDTO();
 
         } catch (\Exception $exception)
         {
@@ -42,7 +37,7 @@ class TasksAPIController extends AbstractController
     {
         try
         {
-            $data = $this->taskService->getSingleTaskDTO($id, $this->taskRepository);
+            $data = $this->taskService->getSingleTaskDTO($id);
 
         } catch (TaskNotFoundException $exception)
         {
@@ -57,7 +52,7 @@ class TasksAPIController extends AbstractController
     {
         try
         {
-            $data = $this->taskService->newTaskDTO($request, $this->taskRepository);
+            $data = $this->taskService->newTaskDTO($request);
 
         } catch (\Exception $exception)
         {
@@ -73,7 +68,7 @@ class TasksAPIController extends AbstractController
     {
         try
         {
-            $data = $this->taskService->editTaskDTO($request, $id, $this->taskRepository);
+            $data = $this->taskService->editTaskDTO($request, $id);
 
         } catch (TaskNotFoundException $exception)
         {
@@ -89,7 +84,7 @@ class TasksAPIController extends AbstractController
     {
         try
         {
-            $this->taskService->deleteTaskDTO($id, $this->taskRepository);
+            $this->taskService->deleteTaskDTO($id);
 
         } catch (TaskNotFoundException $exception)
         {
