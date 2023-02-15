@@ -14,10 +14,10 @@ class Task
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    private ?string $description = null;
+    private ?string $description;
 
     #[ORM\Column]
-    private ?bool $completed = null;
+    private ?bool $completed;
 
     #[ORM\Column]
     private \DateTimeImmutable $createdAt;
