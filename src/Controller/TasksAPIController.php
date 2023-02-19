@@ -2,42 +2,30 @@
 
 namespace App\Controller;
 
-use App\Entity\Task;
-use App\Entity\TasksEntity;
-use App\Exceptions\TaskNotFoundException;
-use App\Repository\TaskRepository;
-use Doctrine\Persistence\ManagerRegistry;
+use App\Exception\TaskNotFoundException;
+use App\Service\TaskService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 class TasksAPIController extends AbstractController
 {
-    private $repository;
 
-    public function __construct(TaskRepository $repository) {
-        $this->repository = $repository;
+    public function __construct(private readonly TaskService $taskService)
+    {
     }
 
     #[Route('/api/task',name: 'task_index', methods: ['GET'])]
-    public function getAllTask(): JsonResponse {
-        try {
+    public function getAllTasks(): JsonResponse
+    {
+        try
+        {
+            $data = $this->taskService->getAllTasksDTO();
 
-            // Use TaskRepository instead ManagerRegistry because it's more specified
-            $tasks = $this->repository->findAll();
-
-            $data = [];
-
-            foreach ($tasks as $task) {
-                $data[] = [
-                    'id' => $task->getId(),
-                    'description' => $task->getDescription(),
-                    'completed' => $task->isCompleted(),
-                ];
-            }
-
-        } catch (\Exception $exception) {
+        } catch (\Exception $exception)
+        {
             return new JsonResponse('An error occurred: ' . $exception->getMessage());
         }
 
@@ -45,22 +33,14 @@ class TasksAPIController extends AbstractController
     }
 
     #[Route('/api/task/{id}', name: 'task_show_single', methods: ['GET'])]
-    public function getSingleTask(int $id): JsonResponse {
-        try {
+    public function getSingleTask(int $id): JsonResponse
+    {
+        try
+        {
+            $data = $this->taskService->getSingleTaskDTO($id);
 
-            $task = $this->repository->find($id);
-
-            if (!$task) {
-                throw new TaskNotFoundException($id);
-            }
-
-            $data = [
-                'id' => $task->getId(),
-                'description' => $task->getDescription(),
-                'completed' => $task->isCompleted(),
-            ];
-
-        } catch (TaskNotFoundException $exception) {
+        } catch (TaskNotFoundException $exception)
+        {
             return new JsonResponse(['An error occurred: ' => $exception->getMessage()], 404);
         }
 
@@ -68,59 +48,46 @@ class TasksAPIController extends AbstractController
     }
 
     #[Route('/api/task', name: 'task_new', methods: ['POST'])]
-    public function newTask(Request $request): JsonResponse {
-        try {
+    public function newTask(Request $request): JsonResponse
+    {
+        try
+        {
+            $data = $this->taskService->newTaskDTO($request);
 
-            $task = new Task();
-            $task->setDescription($request->request->get('description'));
-            $task->setCompleted($request->request->get('completed'));
-
-            $this->repository->save($task, true);
-
-        } catch (\Exception $exception) {
+        } catch (\Exception $exception)
+        {
             return new JsonResponse('An error occurred: ' . $exception->getMessage());
         }
 
-        return new JsonResponse('Created new task successfully with id: ' . $task->getId());
+        return new JsonResponse('Created new task successfully with id: ' . $data->id , Response::HTTP_CREATED);
 
     }
 
-    #[Route('/api/task/{id}/edit', name: 'task_edit', methods: ['PUT', 'PATCH'])]
-    public function editTask(Request $request, int $id) {
-        try {
+    #[Route('/api/task/{id}', name: 'task_edit', methods: ['PUT', 'PATCH'])]
+    public function editTask(Request $request, int $id): JsonResponse
+    {
+        try
+        {
+            $data = $this->taskService->editTaskDTO($request, $id);
 
-            $task = $this->repository->find($id);
-
-            if (!$task) {
-                throw new TaskNotFoundException($id);
-            }
-
-            $parametr = json_decode($request->getContent(), true);
-            $task->setDescription($parametr['description']);
-            $task->setCompleted($parametr['completed']);
-            $this->repository->save($task, true);
-
-        } catch (TaskNotFoundException $exception) {
+        } catch (TaskNotFoundException $exception)
+        {
             return new JsonResponse(['An error occurred: ' => $exception->getMessage()], 404);
         }
 
-        return new JsonResponse('Edited a task successfully with id: ' . $id);
+        return new JsonResponse('Edited a task successfully with id: ' . $data->id);
 
     }
 
-    #[Route('api/task/{id}/delete', name: 'task_delete', methods: ['DELETE'])]
-    public function deleteTask(int $id) {
-        try {
+    #[Route('api/task/{id}', name: 'task_delete', methods: ['DELETE'])]
+    public function deleteTask(int $id): JsonResponse
+    {
+        try
+        {
+            $this->taskService->deleteTaskDTO($id);
 
-            $task = $this->repository->find($id);
-
-            if (!$task) {
-                throw new TaskNotFoundException($id);
-            }
-
-            $this->repository->remove($task, true);
-
-        } catch (TaskNotFoundException $exception) {
+        } catch (TaskNotFoundException $exception)
+        {
             return new JsonResponse(['An error occurred: ' => $exception->getMessage()], 404);
         }
 
