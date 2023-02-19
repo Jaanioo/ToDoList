@@ -3,9 +3,7 @@
 namespace App\Tests\Unit;
 
 use App\Controller\TasksAPIController;
-use App\Entity\Task;
 use App\Service\TaskService;
-use http\Env\Response;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
