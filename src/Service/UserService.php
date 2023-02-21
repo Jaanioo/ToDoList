@@ -6,6 +6,7 @@ use App\Entity\User;
 use App\Factory\UserDTOFactory;
 use App\Interface\UserRepositoryInterface;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class UserService
@@ -31,6 +32,18 @@ class UserService
         return $data;
     }
 
+    public function getSingleUserDTO(string $email): object
+    {
+        $user = $this->repository->find($email);
+
+        if (!$user)
+        {
+            throw new NotFoundHttpException($email);
+        }
+
+        return $this->userDTOFactory->getDTOFromUser($user);
+    }
+
     public function newUserDTO(Request $request, UserPasswordHasherInterface $passwordHasher): object
     {
         $user = new User();
@@ -44,6 +57,7 @@ class UserService
         );
         $user->setPassword($hashedPassword);
 
+        //var_dump($user);
         $this->repository->save($user, true);
 
         return $this->userDTOFactory->getDTOFromUser($user);

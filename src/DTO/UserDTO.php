@@ -10,6 +10,7 @@ class UserDTO
         public string $username,
         public string $email,
         public array $roles,
-        public string $password ){ }
+        public string $password,
+        public ?string $token ){ }
 
 }

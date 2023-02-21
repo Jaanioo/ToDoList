@@ -14,7 +14,8 @@ class UserDTOFactory
             $user->getEmail(),
             $user->getUsername(),
             $user->getRoles(),
-            $user->getPassword()
+            $user->getPassword(),
+            $user->getToken()
         );
     }
 }
