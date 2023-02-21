@@ -7,13 +7,15 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
 
 class UserController extends AbstractController
 {
 
     public function __construct(
-        private readonly UserService $userService
+        private readonly UserService $userService,
+        private readonly UserPasswordHasherInterface $passwordHasher
     ){}
 
 
@@ -32,12 +34,12 @@ class UserController extends AbstractController
         return new JsonResponse($data);
     }
 
-    #[Route('/api/user/new', name: 'user_new', methods: ['POST'])]
+    #[Route('/api/user', name: 'user_new', methods: ['POST'])]
     public function registerUser(Request $request): JsonResponse
     {
         try
         {
-            $data = $this->userService->newUserDTO($request);
+            $data = $this->userService->newUserDTO($request, $this->passwordHasher);
 
         } catch (\Exception $exception)
         {

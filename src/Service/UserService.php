@@ -6,6 +6,7 @@ use App\Entity\User;
 use App\Factory\UserDTOFactory;
 use App\Interface\UserRepositoryInterface;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class UserService
 {
@@ -30,12 +31,18 @@ class UserService
         return $data;
     }
 
-    public function newUserDTO(Request $request): object
+    public function newUserDTO(Request $request, UserPasswordHasherInterface $passwordHasher): object
     {
         $user = new User();
         $user->setEmail($request->get('email'));
         $user->setUsername($request->get('username'));
-        $user->setPassword($request->get('password'));
+
+        $plainTextPassword = $request->get('password');
+        $hashedPassword = $passwordHasher->hashPassword(
+            $user,
+            $plainTextPassword
+        );
+        $user->setPassword($hashedPassword);
 
         $this->repository->save($user, true);
 
