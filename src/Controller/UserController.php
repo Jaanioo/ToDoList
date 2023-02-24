@@ -73,9 +73,9 @@ class UserController extends AbstractController
         $username = $credentials['username'];
         $password = $credentials['password'];
 
-        $user = $this->repository->findOneBy(['username' => $username]);
+        $user = $this->repository->findOneBy(['email' => $username]);
 
-        var_dump($username, $password);
+        //dd($username, $password);
 
         //Invalid still displays
         if (!$user instanceof UserInterface || !$this->passwordHasher->isPasswordValid($user, $password))
