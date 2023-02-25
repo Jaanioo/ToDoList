@@ -7,6 +7,8 @@ use App\Factory\UserDTOFactory;
 use App\Interface\UserRepositoryInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mime\Email;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class UserService
@@ -44,7 +46,7 @@ class UserService
         return $this->userDTOFactory->getDTOFromUser($user);
     }
 
-    public function newUserDTO(Request $request, UserPasswordHasherInterface $passwordHasher): object
+    public function newUserDTO(MailerInterface $mailer, Request $request, UserPasswordHasherInterface $passwordHasher): object
     {
         $user = new User();
         $user->setEmail($request->get('email'));
@@ -57,8 +59,15 @@ class UserService
         );
         $user->setPassword($hashedPassword);
 
-        //var_dump($user);
         $this->repository->save($user, true);
+
+        $email = (new Email())
+            ->from('janpalen@example.com')
+            ->to($user->getEmail())
+            ->subject('Welcome to ToDoList!')
+            ->text('Nice to meet you ' . $user->getUsername() . "! ❤️");
+
+        $mailer->send($email);
 
         return $this->userDTOFactory->getDTOFromUser($user);
     }

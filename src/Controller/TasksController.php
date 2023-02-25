@@ -86,7 +86,7 @@ class TasksController extends AbstractController
             return new JsonResponse('An error occurred: ' . $exception->getMessage());
         }
 
-        return new JsonResponse('Created new task successfully with id: ' , Response::HTTP_CREATED);
+        return new JsonResponse('Created new task successfully! ', Response::HTTP_CREATED);
 
     }
 

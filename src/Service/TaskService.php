@@ -54,7 +54,7 @@ class TaskService
 
         if (!$user)
         {
-            return new JsonResponse(['error' => 'User not found'], Response::HTTP_NOT_FOUND);
+            return new JsonResponse(['error' => 'User not found']);
         }
 
         $tasks = $user->getTasks();
@@ -114,7 +114,7 @@ class TaskService
         $task = new Task();
         $task->setDescription($request->get('description'));
         $task->setCompleted($request->get('completed'));
-        //$task->setUser($user);
+
         $user->addTask($task);
 
         $this->repository->save($task, true);
