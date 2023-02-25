@@ -48,7 +48,7 @@ class UserService
         return $this->userDTOFactory->getDTOFromUser($user);
     }
 
-    public function changePassword(Request $request, UserPasswordHasherInterface $passwordHasher): object
+    public function changePassword(MailerInterface $mailer, Request $request, UserPasswordHasherInterface $passwordHasher): object
     {
         $email = $request->request->get('email');
         $newPasswordPlain = $request->request->get('password');
@@ -66,6 +66,14 @@ class UserService
 
         $user->setPassword($newPasswordHashed);
         $this->repository->save($user, true);
+
+        $email = (new Email())
+            ->from('janpalen@example.com')
+            ->to($user->getEmail())
+            ->subject('Password change in ToDoList!')
+            ->text('Your password is changed.  ' . $user->getUsername() . "!");
+
+        $mailer->send($email);
 
         return $this->userDTOFactory->getDTOFromUser($user);
     }

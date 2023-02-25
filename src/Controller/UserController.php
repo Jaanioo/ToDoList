@@ -91,11 +91,11 @@ class UserController extends AbstractController
     }
 
     #[Route('/api/user/change', name: 'api_forgot_password', methods: ['POST'])]
-    public function forgotPassword(Request $request): JsonResponse
+    public function forgotPassword(MailerInterface $mailer, Request $request): JsonResponse
     {
         try
         {
-            $this->userService->changePassword($request, $this->passwordHasher);
+            $this->userService->changePassword($mailer, $request, $this->passwordHasher);
         } catch (\Exception $exception) {
             return new JsonResponse(['error' => 'An error occurred: ' . $exception->getMessage()]);
         }
