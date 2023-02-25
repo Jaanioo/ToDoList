@@ -11,6 +11,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
@@ -59,9 +60,9 @@ class UserController extends AbstractController
 
     }
 
-    #[Route('api/user/login', name: 'api_login')]
+    #[Route('/api/user/login', name: 'api_login', methods: ['GET'])]
     public function loginUser(Request $request,
-                              JWTTokenManagerInterface $tokenManager
+                              //JWTTokenManagerInterface $tokenManager
     ): JsonResponse
     {
         $credentials = json_decode($request->getContent(), true);
@@ -78,14 +79,27 @@ class UserController extends AbstractController
 
         //dd($username, $password);
 
-        //Invalid still displays
         if (!$user instanceof UserInterface || !$this->passwordHasher->isPasswordValid($user, $password))
         {
             return new JsonResponse('Invalid credentials', Response::HTTP_UNAUTHORIZED);
         }
+        dd($this->passwordHasher->isPasswordValid($user, $password));
 
-        $token = $tokenManager->create($user);
+        //$token = $tokenManager->create($user);
 
-        return new JsonResponse($user->getUserIdentifier() . $token);
+        return new JsonResponse($user->getUserIdentifier());
+    }
+
+    #[Route('/api/user/change', name: 'api_forgot_password', methods: ['POST'])]
+    public function forgotPassword(Request $request): JsonResponse
+    {
+        try
+        {
+            $this->userService->changePassword($request, $this->passwordHasher);
+        } catch (\Exception $exception) {
+            return new JsonResponse(['error' => 'An error occurred: ' . $exception->getMessage()]);
+        }
+
+        return new JsonResponse('Password changed', Response::HTTP_CREATED);
     }
 }

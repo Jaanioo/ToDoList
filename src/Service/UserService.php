@@ -5,7 +5,9 @@ namespace App\Service;
 use App\Entity\User;
 use App\Factory\UserDTOFactory;
 use App\Interface\UserRepositoryInterface;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
@@ -22,13 +24,13 @@ class UserService
     public function getAllUsersDTO(): array
     {
         // Use TaskRepository instead ManagerRegistry because it's more specified
-        $tasks = $this->repository->findAll();
+        $users = $this->repository->findAll();
 
         $data = [];
 
-        foreach ($tasks as $task)
+        foreach ($users as $user)
         {
-            $data[] = $this->userDTOFactory->getDTOFromUser($task);
+            $data[] = $this->userDTOFactory->getDTOFromUser($user);
         }
 
         return $data;
@@ -42,6 +44,28 @@ class UserService
         {
             throw new NotFoundHttpException($email);
         }
+
+        return $this->userDTOFactory->getDTOFromUser($user);
+    }
+
+    public function changePassword(Request $request, UserPasswordHasherInterface $passwordHasher): object
+    {
+        $email = $request->request->get('email');
+        $newPasswordPlain = $request->request->get('password');
+
+        $user = $this->repository->findOneBy(['email' => $email]);
+
+        if (!$user) {
+            throw new NotFoundHttpException($email);
+        }
+
+        $newPasswordHashed = $passwordHasher->hashPassword(
+            $user,
+            $newPasswordPlain
+        );
+
+        $user->setPassword($newPasswordHashed);
+        $this->repository->save($user, true);
 
         return $this->userDTOFactory->getDTOFromUser($user);
     }
