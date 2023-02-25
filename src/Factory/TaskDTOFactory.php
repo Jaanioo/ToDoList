@@ -13,7 +13,8 @@ class TaskDTOFactory
         return new TaskDTO(
             $task->getId(),
             $task->getDescription(),
-            $task->getCompleted()
+            $task->getCompleted(),
+            $task->getCreatedAt()
         );
     }
 }

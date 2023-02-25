@@ -2,10 +2,7 @@
 
 namespace App\Controller;
 
-use App\Entity\User;
 use App\Exception\TaskNotFoundException;
-use App\Repository\TaskRepository;
-use App\Repository\UserRepository;
 use App\Service\TaskService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -16,8 +13,20 @@ use Symfony\Component\Routing\Annotation\Route;
 class TasksController extends AbstractController
 {
 
-    public function __construct(private readonly TaskService $taskService)
+    public function __construct(private readonly TaskService $taskService) {}
+
+    #[Route('/api/task/user/{userId}', name: 'tasks_for_user', methods: ['GET'])]
+    public function getTasksForUser(int $userId): JsonResponse
     {
+        try
+        {
+            $data = $this->taskService->getAllTasksForUserDTO($userId);
+        } catch (\Exception $exception)
+        {
+            return new JsonResponse('An error occurred: ' . $exception->getMessage());
+        }
+
+        return new JsonResponse($data);
     }
 
     #[Route('/api/task',name: 'task_index', methods: ['GET'])]
@@ -45,29 +54,6 @@ class TasksController extends AbstractController
         } catch (TaskNotFoundException $exception)
         {
             return new JsonResponse(['An error occurred: ' => $exception->getMessage()], 404);
-        }
-
-        return new JsonResponse($data);
-    }
-
-    #[Route('/api/task/user/{user_id}', name: 'tasks_for_user', methods: ['GET'])]
-    public function getTasksForUser(int $user_id, UserRepository $userRepository): JsonResponse
-    {
-        $user = $userRepository->find($user_id);
-        if (!$user) {
-            return new JsonResponse(['error' => 'User not found'], Response::HTTP_NOT_FOUND);
-        }
-
-        $tasks = $user->getTasks();
-
-        $data = [];
-        foreach ($tasks as $task) {
-            $data[] = [
-                'id' => $task->getId(),
-                'description' => $task->getDescription(),
-                'completed' => $task->getCompleted(),
-                'created_at' => $task->getCreatedAt()->format('Y-m-d H:i:s'),
-            ];
         }
 
         return new JsonResponse($data);

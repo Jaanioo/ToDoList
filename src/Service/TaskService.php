@@ -6,6 +6,7 @@ use App\Entity\Task;
 use App\Exception\TaskNotFoundException;
 use App\Factory\TaskDTOFactory;
 use App\Interface\TaskRepositoryInterface;
+use App\Interface\UserRepositoryInterface;
 use Symfony\Component\HttpFoundation\Request;
 
 class TaskService
@@ -16,12 +17,34 @@ class TaskService
 //    private TaskRepository $repository;
     public function __construct(
         private readonly TaskDTOFactory $taskDTOFactory,
-        private readonly TaskRepositoryInterface $repository)
+        private readonly TaskRepositoryInterface $repository,
+        private readonly UserRepositoryInterface $userRepository)
     {
 
         //old PHP version
 //        $this->taskDTOFactory = $taskDTOFactory;
 //        $this->repository = $repository;
+    }
+
+    public function getAllTasksForUserDTO(int $userId): array
+    {
+        $user = $this->userRepository->find($userId);
+
+        if (!$user)
+        {
+            return new JsonResponse(['error' => 'User not found'], Response::HTTP_NOT_FOUND);
+        }
+
+        $tasks = $user->getTasks();
+
+        $data = [];
+
+        foreach ($tasks as $task)
+        {
+            $data[] = $this->taskDTOFactory->getDTOFromTask($task);
+        }
+
+        return $data;
     }
 
     public function getAllTasksDTO(): array

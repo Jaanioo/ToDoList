@@ -9,7 +9,8 @@ class TaskDTO
     public function __construct(
         public int $id,
         public string $description,
-        public bool $completed ) { }
+        public bool $completed,
+        public \DateTimeImmutable $createdAt ) { }
 
     //old way of construct
 //    public int $id;
