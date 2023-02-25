@@ -29,6 +29,21 @@ class TasksController extends AbstractController
         return new JsonResponse($data);
     }
 
+    //There is need to pass int value representing bool ( 0=false 1=true)
+    #[Route('/api/task/user/{userId}/{bool}', name: 'task_on_completed', methods: ['GET'])]
+    public function getTasksOnCompletedForUser(int $userId, bool $bool): JsonResponse
+    {
+        try
+        {
+            $data = $this->taskService->getTasksOnCompletedForUserDTO($userId, $bool);
+        } catch (\Exception $exception)
+        {
+            return new JsonResponse('An error occurred: ' . $exception->getMessage());
+        }
+
+        return new JsonResponse($data);
+    }
+
     #[Route('/api/task',name: 'task_index', methods: ['GET'])]
     public function getAllTasks(): JsonResponse
     {
@@ -59,19 +74,19 @@ class TasksController extends AbstractController
         return new JsonResponse($data);
     }
 
-    #[Route('/api/task/new', name: 'task_new', methods: ['POST'])]
-    public function newTask(Request $request): JsonResponse
+    #[Route('/api/task/new/{userId}', name: 'task_new', methods: ['POST'])]
+    public function newTask(Request $request, int $userId): JsonResponse
     {
         try
         {
-            $data = $this->taskService->newTaskDTO($request);
+            $data = $this->taskService->newTaskDTO($request, $userId);
 
         } catch (\Exception $exception)
         {
             return new JsonResponse('An error occurred: ' . $exception->getMessage());
         }
 
-        return new JsonResponse('Created new task successfully with id: ' . $data->id , Response::HTTP_CREATED);
+        return new JsonResponse('Created new task successfully with id: ' , Response::HTTP_CREATED);
 
     }
 

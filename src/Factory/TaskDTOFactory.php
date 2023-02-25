@@ -14,7 +14,8 @@ class TaskDTOFactory
             $task->getId(),
             $task->getDescription(),
             $task->getCompleted(),
-            $task->getCreatedAt()
+            $task->getCreatedAt(),
+            $task->getUser()
         );
     }
 }

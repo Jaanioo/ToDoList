@@ -2,6 +2,8 @@
 
 namespace App\DTO;
 
+use App\Entity\User;
+
 class TaskDTO
 {
 
@@ -10,7 +12,8 @@ class TaskDTO
         public int $id,
         public string $description,
         public bool $completed,
-        public \DateTimeImmutable $createdAt ) { }
+        public \DateTimeImmutable $createdAt,
+        public ?User $user ) { }
 
     //old way of construct
 //    public int $id;
