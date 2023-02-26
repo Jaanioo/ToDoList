@@ -15,6 +15,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Core\Exception\BadCredentialsException;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
@@ -44,7 +45,7 @@ class UserController extends AbstractController
         return new JsonResponse($data);
     }
 
-    #[Route('/api/user', name: 'user_new', methods: ['POST'])]
+    #[Route('/api/register', name: 'user_new', methods: ['POST'])]
     public function registerUser(Request $request, MailerInterface $mailer): JsonResponse
     {
         try
@@ -60,9 +61,9 @@ class UserController extends AbstractController
 
     }
 
-    #[Route('/api/user/login', name: 'api_login', methods: ['GET'])]
+    #[Route('/api/login', name: 'api_login')]
     public function loginUser(Request $request,
-                              //JWTTokenManagerInterface $tokenManager
+                              JWTTokenManagerInterface $tokenManager
     ): JsonResponse
     {
         $credentials = json_decode($request->getContent(), true);
@@ -74,20 +75,19 @@ class UserController extends AbstractController
 
         $username = $credentials['username'];
         $password = $credentials['password'];
-
-        $user = $this->repository->findOneBy(['email' => $username]);
-
         //dd($username, $password);
+
+        $user = $this->repository->findOneBy(['username' => $username]);
+        //dd($user);
 
         if (!$user instanceof UserInterface || !$this->passwordHasher->isPasswordValid($user, $password))
         {
             return new JsonResponse('Invalid credentials', Response::HTTP_UNAUTHORIZED);
         }
-        dd($this->passwordHasher->isPasswordValid($user, $password));
 
-        //$token = $tokenManager->create($user);
+        $token = $tokenManager->create($user);
 
-        return new JsonResponse($user->getUserIdentifier());
+        return new JsonResponse($token);
     }
 
     #[Route('/api/user/change', name: 'api_forgot_password', methods: ['POST'])]

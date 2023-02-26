@@ -2,9 +2,12 @@
 
 namespace App\Controller;
 
+use App\Entity\User;
 use App\Exception\TaskNotFoundException;
+use App\Service\SecurityService;
 use App\Service\TaskService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -13,14 +16,15 @@ use Symfony\Component\Routing\Annotation\Route;
 class TasksController extends AbstractController
 {
 
-    public function __construct(private readonly TaskService $taskService) {}
+    public function __construct(
+        private readonly TaskService $taskService ) {}
 
-    #[Route('/api/task/user/{userId}', name: 'tasks_for_user', methods: ['GET'])]
-    public function getTasksForUser(int $userId): JsonResponse
+    #[Route('/api/task/user', name: 'tasks_for_user', methods: ['GET'])]
+    public function getTasksForUser(Security $security): JsonResponse
     {
         try
         {
-            $data = $this->taskService->getAllTasksForUserDTO($userId);
+            $data = $this->taskService->getAllTasksForUserDTO($security);
         } catch (\Exception $exception)
         {
             return new JsonResponse('An error occurred: ' . $exception->getMessage());
@@ -30,12 +34,12 @@ class TasksController extends AbstractController
     }
 
     //There is need to pass int value representing bool ( 0=false 1=true)
-    #[Route('/api/task/user/{userId}/{bool}', name: 'task_on_completed', methods: ['GET'])]
-    public function getTasksOnCompletedForUser(int $userId, bool $bool): JsonResponse
+    #[Route('/api/task/user/{bool}', name: 'task_on_completed', methods: ['GET'])]
+    public function getTasksOnCompletedForUser(Security $security, bool $bool): JsonResponse
     {
         try
         {
-            $data = $this->taskService->getTasksOnCompletedForUserDTO($userId, $bool);
+            $data = $this->taskService->getTasksOnCompletedForUserDTO($security, $bool);
         } catch (\Exception $exception)
         {
             return new JsonResponse('An error occurred: ' . $exception->getMessage());
@@ -44,6 +48,7 @@ class TasksController extends AbstractController
         return new JsonResponse($data);
     }
 
+    //GETTING TASKS WITHOUT USERS
     #[Route('/api/task',name: 'task_index', methods: ['GET'])]
     public function getAllTasks(): JsonResponse
     {
@@ -74,12 +79,13 @@ class TasksController extends AbstractController
         return new JsonResponse($data);
     }
 
-    #[Route('/api/task/new/{userId}', name: 'task_new', methods: ['POST'])]
-    public function newTask(Request $request, int $userId): JsonResponse
+    //NEW, DELETE, EDIT
+    #[Route('/api/task/new', name: 'task_new', methods: ['POST'])]
+    public function newTask(Security $security, Request $request): JsonResponse
     {
         try
         {
-            $data = $this->taskService->newTaskDTO($request, $userId);
+            $this->taskService->newTaskDTO($security, $request);
 
         } catch (\Exception $exception)
         {

@@ -7,8 +7,10 @@ use App\Exception\TaskNotFoundException;
 use App\Factory\TaskDTOFactory;
 use App\Interface\TaskRepositoryInterface;
 use App\Interface\UserRepositoryInterface;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 class TaskService
 {
@@ -19,7 +21,8 @@ class TaskService
     public function __construct(
         private readonly TaskDTOFactory $taskDTOFactory,
         private readonly TaskRepositoryInterface $repository,
-        private readonly UserRepositoryInterface $userRepository)
+        private readonly UserRepositoryInterface $userRepository,
+        private readonly SecurityService $securityService)
     {
 
         //old PHP version
@@ -27,8 +30,14 @@ class TaskService
 //        $this->repository = $repository;
     }
 
-    public function getAllTasksForUserDTO(int $userId): array
+    public function getAllTasksForUserDTO(Security $security): array
     {
+        $userId = $this->securityService->getCurrentUserId($security);
+
+        if ($userId === null) {
+            return new JsonResponse('Unauthorized', Response::HTTP_UNAUTHORIZED);
+        }
+
         $user = $this->userRepository->find($userId);
 
         if (!$user)
@@ -48,8 +57,14 @@ class TaskService
         return $data;
     }
 
-    public function getTasksOnCompletedForUserDTO(int $userId, bool $bool): array
+    public function getTasksOnCompletedForUserDTO(Security $security, bool $bool): array
     {
+        $userId = $this->securityService->getCurrentUserId($security);
+
+        if ($userId === null) {
+            return new JsonResponse('Unauthorized', Response::HTTP_UNAUTHORIZED);
+        }
+
         $user = $this->userRepository->find($userId);
 
         if (!$user)
@@ -102,8 +117,14 @@ class TaskService
         return $this->taskDTOFactory->getDTOFromTask($task);
     }
 
-    public function newTaskDTO(Request $request, int $userId): object
+    public function newTaskDTO(Security $security, Request $request): object
     {
+        $userId = $this->securityService->getCurrentUserId($security);
+
+        if ($userId === null) {
+            return new JsonResponse('Unauthorized', Response::HTTP_UNAUTHORIZED);
+        }
+
         $user = $this->userRepository->find($userId);
 
         if (!$user)
