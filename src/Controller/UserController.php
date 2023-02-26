@@ -2,23 +2,17 @@
 
 namespace App\Controller;
 
-use App\Entity\User;
 use App\Repository\UserRepository;
 use App\Service\UserService;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
-use PHPUnit\Util\Json;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Security\Core\Exception\BadCredentialsException;
 use Symfony\Component\Security\Core\User\UserInterface;
-use Symfony\Component\Security\Http\Attribute\CurrentUser;
-use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 
 class UserController extends AbstractController
 {
@@ -62,32 +56,16 @@ class UserController extends AbstractController
     }
 
     #[Route('/api/login', name: 'api_login')]
-    public function loginUser(Request $request,
-                              JWTTokenManagerInterface $tokenManager
-    ): JsonResponse
+    public function loginUser(Request $request, JWTTokenManagerInterface $tokenManager ): JsonResponse
     {
-        $credentials = json_decode($request->getContent(), true);
-
-        if (!isset($credentials['username'], $credentials['password']) || !$credentials)
+        try
         {
-            return new JsonResponse('Missing credentials', Response::HTTP_UNAUTHORIZED);
+            $token = $this->userService->loginUser($request, $tokenManager);
+        } catch (\Exception $exception) {
+            return new JsonResponse(['error' => 'An error occurred: ' . $exception->getMessage()]);
         }
 
-        $username = $credentials['username'];
-        $password = $credentials['password'];
-        //dd($username, $password);
-
-        $user = $this->repository->findOneBy(['username' => $username]);
-        //dd($user);
-
-        if (!$user instanceof UserInterface || !$this->passwordHasher->isPasswordValid($user, $password))
-        {
-            return new JsonResponse('Invalid credentials', Response::HTTP_UNAUTHORIZED);
-        }
-
-        $token = $tokenManager->create($user);
-
-        return new JsonResponse($token);
+        return new JsonResponse(['token' => $token], Response::HTTP_CREATED);
     }
 
     #[Route('/api/user/change', name: 'api_forgot_password', methods: ['POST'])]
