@@ -14,7 +14,6 @@ use Symfony\Component\HttpFoundation\Response;
 
 class TaskService
 {
-
     //old PHP version
 //    private TaskDTOFactory $taskDTOFactory;
 //    private TaskRepository $repository;
@@ -22,8 +21,8 @@ class TaskService
         private readonly TaskDTOFactory $taskDTOFactory,
         private readonly TaskRepositoryInterface $repository,
         private readonly UserRepositoryInterface $userRepository,
-        private readonly SecurityService $securityService)
-    {
+        private readonly SecurityService $securityService
+    ) {
 
         //old PHP version
 //        $this->taskDTOFactory = $taskDTOFactory;
@@ -40,8 +39,7 @@ class TaskService
 
         $user = $this->userRepository->find($userId);
 
-        if (!$user)
-        {
+        if (!$user) {
             return new JsonResponse(['error' => 'User not found'], Response::HTTP_NOT_FOUND);
         }
 
@@ -49,8 +47,7 @@ class TaskService
 
         $data = [];
 
-        foreach ($tasks as $task)
-        {
+        foreach ($tasks as $task) {
             $data[] = $this->taskDTOFactory->getDTOFromTask($task);
         }
 
@@ -67,8 +64,7 @@ class TaskService
 
         $user = $this->userRepository->find($userId);
 
-        if (!$user)
-        {
+        if (!$user) {
             return new JsonResponse(['error' => 'User not found']);
         }
 
@@ -76,10 +72,8 @@ class TaskService
 
         $data = [];
 
-        foreach ($tasks as $task)
-        {
-            if ($bool === $task->getCompleted())
-            {
+        foreach ($tasks as $task) {
+            if ($bool === $task->getCompleted()) {
                 $data[] = $this->taskDTOFactory->getDTOFromTask($task);
             }
         }
@@ -94,9 +88,8 @@ class TaskService
 
         $data = [];
 
-        foreach ($tasks as $task)
-        {
-           $data[] = $this->taskDTOFactory->getDTOFromTask($task);
+        foreach ($tasks as $task) {
+            $data[] = $this->taskDTOFactory->getDTOFromTask($task);
         }
 
         return $data;
@@ -109,8 +102,7 @@ class TaskService
     {
         $task = $this->repository->find($id);
 
-        if (!$task)
-        {
+        if (!$task) {
             throw new TaskNotFoundException($id);
         }
 
@@ -127,8 +119,7 @@ class TaskService
 
         $user = $this->userRepository->find($userId);
 
-        if (!$user)
-        {
+        if (!$user) {
             return new JsonResponse(['error' => 'User not found']);
         }
 
@@ -151,8 +142,7 @@ class TaskService
     {
         $task = $this->repository->find($id);
 
-        if (!$task)
-        {
+        if (!$task) {
             throw new TaskNotFoundException($id);
         }
 
@@ -171,8 +161,7 @@ class TaskService
     {
         $task = $this->repository->find($id);
 
-        if (!$task)
-        {
+        if (!$task) {
             throw new TaskNotFoundException($id);
         }
 

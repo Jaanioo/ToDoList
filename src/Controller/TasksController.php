@@ -15,18 +15,17 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class TasksController extends AbstractController
 {
-
     public function __construct(
-        private readonly TaskService $taskService ) {}
+        private readonly TaskService $taskService
+    ) {
+    }
 
     #[Route('/api/task/user', name: 'tasks_for_user', methods: ['GET'])]
     public function getTasksForUser(Security $security): JsonResponse
     {
-        try
-        {
+        try {
             $data = $this->taskService->getAllTasksForUserDTO($security);
-        } catch (\Exception $exception)
-        {
+        } catch (\Exception $exception) {
             return new JsonResponse('An error occurred: ' . $exception->getMessage());
         }
 
@@ -37,11 +36,9 @@ class TasksController extends AbstractController
     #[Route('/api/task/user/{bool}', name: 'task_on_completed', methods: ['GET'])]
     public function getTasksOnCompletedForUser(Security $security, bool $bool): JsonResponse
     {
-        try
-        {
+        try {
             $data = $this->taskService->getTasksOnCompletedForUserDTO($security, $bool);
-        } catch (\Exception $exception)
-        {
+        } catch (\Exception $exception) {
             return new JsonResponse('An error occurred: ' . $exception->getMessage());
         }
 
@@ -49,15 +46,12 @@ class TasksController extends AbstractController
     }
 
     //GETTING TASKS WITHOUT USERS
-    #[Route('/api/task',name: 'task_index', methods: ['GET'])]
+    #[Route('/api/task', name: 'task_index', methods: ['GET'])]
     public function getAllTasks(): JsonResponse
     {
-        try
-        {
+        try {
             $data = $this->taskService->getAllTasksDTO();
-
-        } catch (\Exception $exception)
-        {
+        } catch (\Exception $exception) {
             return new JsonResponse('An error occurred: ' . $exception->getMessage());
         }
 
@@ -67,12 +61,9 @@ class TasksController extends AbstractController
     #[Route('/api/task/{id}', name: 'task_show_single', methods: ['GET'])]
     public function getSingleTask(int $id): JsonResponse
     {
-        try
-        {
+        try {
             $data = $this->taskService->getSingleTaskDTO($id);
-
-        } catch (TaskNotFoundException $exception)
-        {
+        } catch (TaskNotFoundException $exception) {
             return new JsonResponse(['An error occurred: ' => $exception->getMessage()], 404);
         }
 
@@ -83,48 +74,36 @@ class TasksController extends AbstractController
     #[Route('/api/task/new', name: 'task_new', methods: ['POST'])]
     public function newTask(Security $security, Request $request): JsonResponse
     {
-        try
-        {
+        try {
             $this->taskService->newTaskDTO($security, $request);
-
-        } catch (\Exception $exception)
-        {
+        } catch (\Exception $exception) {
             return new JsonResponse('An error occurred: ' . $exception->getMessage());
         }
 
         return new JsonResponse('Created new task successfully! ', Response::HTTP_CREATED);
-
     }
 
     #[Route('/api/task/{id}/edit', name: 'task_edit', methods: ['PUT', 'PATCH'])]
     public function editTask(Request $request, int $id): JsonResponse
     {
-        try
-        {
+        try {
             $data = $this->taskService->editTaskDTO($request, $id);
-
-        } catch (TaskNotFoundException $exception)
-        {
+        } catch (TaskNotFoundException $exception) {
             return new JsonResponse(['An error occurred: ' => $exception->getMessage()], 404);
         }
 
         return new JsonResponse('Edited a task successfully with id: ' . $data->id);
-
     }
 
     #[Route('api/task/{id}/delete', name: 'task_delete', methods: ['DELETE'])]
     public function deleteTask(int $id): JsonResponse
     {
-        try
-        {
+        try {
             $this->taskService->deleteTaskDTO($id);
-
-        } catch (TaskNotFoundException $exception)
-        {
+        } catch (TaskNotFoundException $exception) {
             return new JsonResponse(['An error occurred: ' => $exception->getMessage()], 404);
         }
 
         return new JsonResponse('Deleted a task successfully with id: ' . $id);
-
     }
 }

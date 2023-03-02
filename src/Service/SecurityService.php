@@ -7,7 +7,7 @@ use Symfony\Bundle\SecurityBundle\Security;
 
 class SecurityService
 {
-    public function getCurrentUserId(Security $security): ?Int
+    public function getCurrentUserId(Security $security): ?int
     {
         // Get the current user from the security context
         $currentUser = $security->getUser();

@@ -16,23 +16,20 @@ use Symfony\Component\Security\Core\User\UserInterface;
 
 class UserController extends AbstractController
 {
-
     public function __construct(
         private readonly UserService $userService,
         private readonly UserPasswordHasherInterface $passwordHasher,
         private readonly UserRepository $repository
-    ){}
+    ) {
+    }
 
 
-    #[Route('/api/user',name: 'users_index', methods: ['GET'])]
+    #[Route('/api/user', name: 'users_index', methods: ['GET'])]
     public function getAllUsers(): JsonResponse
     {
-        try
-        {
+        try {
             $data = $this->userService->getAllUsersDTO();
-
-        } catch (\Exception $exception)
-        {
+        } catch (\Exception $exception) {
             return new JsonResponse('An error occurred: ' . $exception->getMessage());
         }
 
@@ -42,24 +39,19 @@ class UserController extends AbstractController
     #[Route('/api/register', name: 'user_new', methods: ['POST'])]
     public function registerUser(Request $request, MailerInterface $mailer): JsonResponse
     {
-        try
-        {
+        try {
             $data = $this->userService->newUserDTO($mailer, $request, $this->passwordHasher);
-
-        } catch (\Exception $exception)
-        {
+        } catch (\Exception $exception) {
             return new JsonResponse(['error' => 'An error occurred: ' . $exception->getMessage()]);
         }
 
-        return new JsonResponse('Created new user successfully with id: ' . $data->id , Response::HTTP_CREATED);
-
+        return new JsonResponse('Created new user successfully with id: ' . $data->id, Response::HTTP_CREATED);
     }
 
     #[Route('/api/login', name: 'api_login')]
-    public function loginUser(Request $request, JWTTokenManagerInterface $tokenManager ): JsonResponse
+    public function loginUser(Request $request, JWTTokenManagerInterface $tokenManager): JsonResponse
     {
-        try
-        {
+        try {
             $token = $this->userService->loginUser($request, $tokenManager);
         } catch (\Exception $exception) {
             return new JsonResponse(['error' => 'An error occurred: ' . $exception->getMessage()]);
@@ -71,8 +63,7 @@ class UserController extends AbstractController
     #[Route('/api/user/change', name: 'api_forgot_password', methods: ['POST'])]
     public function forgotPassword(MailerInterface $mailer, Request $request): JsonResponse
     {
-        try
-        {
+        try {
             $this->userService->changePassword($mailer, $request, $this->passwordHasher);
         } catch (\Exception $exception) {
             return new JsonResponse(['error' => 'An error occurred: ' . $exception->getMessage()]);

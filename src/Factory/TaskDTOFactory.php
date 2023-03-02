@@ -7,7 +7,6 @@ use App\Entity\Task;
 
 class TaskDTOFactory
 {
-
     public function getDTOFromTask(Task $task): TaskDTO
     {
         return new TaskDTO(

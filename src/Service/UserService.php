@@ -17,12 +17,12 @@ use Symfony\Component\HttpFoundation\Response;
 
 class UserService
 {
-
     public function __construct(
         private readonly UserDTOFactory $userDTOFactory,
         private readonly UserRepositoryInterface $repository,
         private readonly UserPasswordHasherInterface $passwordHasher
-    ){}
+    ) {
+    }
 
     public function getAllUsersDTO(): array
     {
@@ -31,8 +31,7 @@ class UserService
 
         $data = [];
 
-        foreach ($users as $user)
-        {
+        foreach ($users as $user) {
             $data[] = $this->userDTOFactory->getDTOFromUser($user);
         }
 
@@ -43,16 +42,18 @@ class UserService
     {
         $user = $this->repository->find($email);
 
-        if (!$user)
-        {
+        if (!$user) {
             throw new NotFoundHttpException($email);
         }
 
         return $this->userDTOFactory->getDTOFromUser($user);
     }
 
-    public function newUserDTO(MailerInterface $mailer, Request $request, UserPasswordHasherInterface $passwordHasher): object
-    {
+    public function newUserDTO(
+        MailerInterface $mailer,
+        Request $request,
+        UserPasswordHasherInterface $passwordHasher
+    ): object {
         $user = new User();
         $user->setEmail($request->get('email'));
         $user->setUsername($request->get('username'));
@@ -81,8 +82,7 @@ class UserService
     {
         $credentials = json_decode($request->getContent(), true);
 
-        if (!isset($credentials['username'], $credentials['password']) || !$credentials)
-        {
+        if (!isset($credentials['username'], $credentials['password']) || !$credentials) {
             return new JsonResponse('Missing credentials', Response::HTTP_UNAUTHORIZED);
         }
 
@@ -93,16 +93,18 @@ class UserService
         $user = $this->repository->findOneBy(['username' => $username]);
         //dd($user);
 
-        if (!$user instanceof UserInterface || !$this->passwordHasher->isPasswordValid($user, $password))
-        {
+        if (!$user instanceof UserInterface || !$this->passwordHasher->isPasswordValid($user, $password)) {
             return new JsonResponse('Invalid credentials', Response::HTTP_UNAUTHORIZED);
         }
 
         return $tokenManager->create($user);
     }
 
-    public function changePassword(MailerInterface $mailer, Request $request, UserPasswordHasherInterface $passwordHasher): object
-    {
+    public function changePassword(
+        MailerInterface $mailer,
+        Request $request,
+        UserPasswordHasherInterface $passwordHasher
+    ): object {
         $email = $request->request->get('email');
         $newPasswordPlain = $request->request->get('password');
 
