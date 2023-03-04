@@ -5,6 +5,7 @@ namespace App\Service;
 use App\Entity\User;
 use App\Factory\UserDTOFactory;
 use App\Interface\UserRepositoryInterface;
+use Gesdinet\JWTRefreshTokenBundle\Model\RefreshTokenManagerInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -95,8 +96,11 @@ class UserService
         return $this->userDTOFactory->getDTOFromUser($user);
     }
 
-    public function loginUser(Request $request, JWTTokenManagerInterface $tokenManager): string
-    {
+    public function loginUser(
+        Request $request,
+        JWTTokenManagerInterface $tokenManager,
+        RefreshTokenManagerInterface $refreshTokenManager
+    ): array {
         $credentials = json_decode($request->getContent(), true);
 
         if (!isset($credentials['username'], $credentials['password']) || !$credentials) {
@@ -111,10 +115,20 @@ class UserService
         //dd($user);
 
         if (!$user instanceof UserInterface || !$this->passwordHasher->isPasswordValid($user, $password)) {
-            return new JsonResponse('Invalid credentials', Response::HTTP_UNAUTHORIZED);
+            return new JsonResponse(['error' => 'Invalid credentials'], Response::HTTP_UNAUTHORIZED);
         }
 
-        return $tokenManager->create($user);
+        $token = $tokenManager->create($user);
+        $refreshToken = $refreshTokenManager->create();
+        $refreshToken->setUsername($user->getUsername());
+        $refreshToken->setRefreshToken(bin2hex(random_bytes(16)));
+        $validityPeriod = new \DateTime('+30 days');
+        $refreshToken->setValid($validityPeriod);
+        $refreshTokenManager->save($refreshToken);
+
+        return [
+            'token' => $token,
+            'refresh_token' => $refreshToken->getRefreshToken()];
     }
 
     /**

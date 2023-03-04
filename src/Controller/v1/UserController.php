@@ -4,6 +4,7 @@ namespace App\Controller\v1;
 
 use App\Repository\UserRepository;
 use App\Service\UserService;
+use Gesdinet\JWTRefreshTokenBundle\Model\RefreshTokenManagerInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -67,10 +68,15 @@ class UserController extends AbstractController
     }
 
     #[Route('/login', name: 'api_login')]
-    public function loginUser(Request $request, JWTTokenManagerInterface $tokenManager): JsonResponse
-    {
+    public function loginUser(
+        Request $request,
+        JWTTokenManagerInterface $tokenManager,
+        RefreshTokenManagerInterface $refreshTokenManager
+    ): JsonResponse {
         try {
-            $token = $this->userService->loginUser($request, $tokenManager);
+            $data = $this->userService->loginUser($request, $tokenManager, $refreshTokenManager);
+            $token = $data['token'];
+            $refreshToken = $data['refresh_token'];
             $this->logger->info('User logged in successfully');
         } catch (\Exception $exception) {
             $this->logger->error('An error occurred while logging in', ['exception' => $exception]);
@@ -81,7 +87,8 @@ class UserController extends AbstractController
         }
 
         return $this->json(
-            ['token' => $token],
+            ['token' => $token,
+                'refresh_token' => $refreshToken],
             Response::HTTP_OK
         );
     }
