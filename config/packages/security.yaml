@@ -37,8 +37,9 @@ security:
     # Easy way to control access for large sections of your site
     # Note: Only the *first* access control that matches will be used
     access_control:
-        - { path: ^/api/register, roles: PUBLIC_ACCESS }
-        - { path: ^/api/login, roles: PUBLIC_ACCESS }
+        - { path: ^/api/v1/user/register, roles: PUBLIC_ACCESS }
+        - { path: ^/api/v1/user/login, roles: PUBLIC_ACCESS }
+        - { path: ^/api/v1/user/change, roles: PUBLIC_ACCESS }
         - { path: ^/api, roles: IS_AUTHENTICATED_FULLY }
 
 when@test:

@@ -2,7 +2,7 @@
 
 namespace App\Tests\Unit;
 
-use App\Controller\TasksController;
+use App\Controller\v1\TaskController;
 use App\Service\TaskService;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -15,7 +15,7 @@ class TaskTest extends TestCase
     protected function setUp(): void
     {
         $this->taskServiceMock = $this->createMock(TaskService::class);
-        $this->tasksAPIController = new TasksController($this->taskServiceMock);
+        $this->tasksAPIController = new TaskController($this->taskServiceMock);
     }
 
     public function testGetAllTasksReturnsJson()

@@ -6,9 +6,11 @@ use App\Entity\User;
 use App\Factory\UserDTOFactory;
 use App\Interface\UserRepositoryInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
@@ -20,7 +22,8 @@ class UserService
     public function __construct(
         private readonly UserDTOFactory $userDTOFactory,
         private readonly UserRepositoryInterface $repository,
-        private readonly UserPasswordHasherInterface $passwordHasher
+        private readonly UserPasswordHasherInterface $passwordHasher,
+        private readonly MailerInterface $mailer,
     ) {
     }
 
@@ -49,31 +52,45 @@ class UserService
         return $this->userDTOFactory->getDTOFromUser($user);
     }
 
+    /**
+     * @throws TransportExceptionInterface
+     */
     public function newUserDTO(
-        MailerInterface $mailer,
         Request $request,
         UserPasswordHasherInterface $passwordHasher
     ): object {
+        $userEmail = $request->get('email');
+        $plainTextPassword = $request->get('password');
+
+        //Validation email format
+        if (!filter_var($userEmail, FILTER_VALIDATE_EMAIL)) {
+            throw new \InvalidArgumentException('Invalid email format');
+        }
+
+        // Validate password length
+        if (!preg_match('/^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/', $plainTextPassword)) {
+            throw new \InvalidArgumentException('Invalid password format.');
+        }
+
         $user = new User();
-        $user->setEmail($request->get('email'));
+        $user->setEmail($userEmail);
         $user->setUsername($request->get('username'));
 
-        $plainTextPassword = $request->get('password');
         $hashedPassword = $passwordHasher->hashPassword(
             $user,
             $plainTextPassword
         );
         $user->setPassword($hashedPassword);
 
-        $this->repository->save($user, true);
-
         $email = (new Email())
-            ->from('janpalen@example.com')
+            ->from($_ENV['FROM_EMAIL'])
             ->to($user->getEmail())
             ->subject('Welcome to ToDoList!')
             ->text('Nice to meet you ' . $user->getUsername() . "! ❤️");
 
-        $mailer->send($email);
+        $this->mailer->send($email);
+
+        $this->repository->save($user, true);
 
         return $this->userDTOFactory->getDTOFromUser($user);
     }
@@ -100,18 +117,31 @@ class UserService
         return $tokenManager->create($user);
     }
 
+    /**
+     * @throws TransportExceptionInterface
+     */
     public function changePassword(
         MailerInterface $mailer,
         Request $request,
         UserPasswordHasherInterface $passwordHasher
     ): object {
-        $email = $request->request->get('email');
-        $newPasswordPlain = $request->request->get('password');
+        $userEmail = $request->get('email');
+        $newPasswordPlain = $request->get('password');
 
-        $user = $this->repository->findOneBy(['email' => $email]);
+        //Validation email format
+        if (!filter_var($userEmail, FILTER_VALIDATE_EMAIL)) {
+            throw new \InvalidArgumentException('Invalid email format');
+        }
+
+        // Validate password length
+        if (!preg_match('/^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/', $newPasswordPlain)) {
+            throw new \InvalidArgumentException('Invalid password format.');
+        }
+
+        $user = $this->repository->findOneBy(['email' => $userEmail]);
 
         if (!$user) {
-            throw new NotFoundHttpException($email);
+            throw new NotFoundHttpException($userEmail);
         }
 
         $newPasswordHashed = $passwordHasher->hashPassword(
