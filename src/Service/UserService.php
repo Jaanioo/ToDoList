@@ -2,10 +2,14 @@
 
 namespace App\Service;
 
+use App\DTO\CreateUserDTO;
+use App\DTO\LoginDTO;
 use App\Entity\User;
 use App\Factory\UserDTOFactory;
 use App\Interface\UserRepositoryInterface;
 use Gesdinet\JWTRefreshTokenBundle\Model\RefreshTokenManagerInterface;
+use JMS\Serializer\Serializer;
+use JMS\Serializer\SerializerInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -25,6 +29,7 @@ class UserService
         private readonly UserRepositoryInterface $repository,
         private readonly UserPasswordHasherInterface $passwordHasher,
         private readonly MailerInterface $mailer,
+        private readonly SerializerInterface $serializer
     ) {
     }
 
@@ -60,26 +65,27 @@ class UserService
         Request $request,
         UserPasswordHasherInterface $passwordHasher
     ): object {
-        $userEmail = $request->get('email');
-        $plainTextPassword = $request->get('password');
+//        $userEmail = $request->get('email');
+//        $plainTextPassword = $request->get('password');
+        $data = $this->serializer->deserialize($request->getContent(), CreateUserDTO::class, 'json');
 
         //Validation email format
-        if (!filter_var($userEmail, FILTER_VALIDATE_EMAIL)) {
+        if (!filter_var($data->getEmail(), FILTER_VALIDATE_EMAIL)) {
             throw new \InvalidArgumentException('Invalid email format');
         }
 
         // Validate password length
-        if (!preg_match('/^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/', $plainTextPassword)) {
+        if (!preg_match('/^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/', $data->getPassword())) {
             throw new \InvalidArgumentException('Invalid password format.');
         }
 
         $user = new User();
-        $user->setEmail($userEmail);
-        $user->setUsername($request->get('username'));
+        $user->setEmail($data->getEmail());
+        $user->setUsername($data->getUsername());
 
         $hashedPassword = $passwordHasher->hashPassword(
             $user,
-            $plainTextPassword
+            $data->getPassword()
         );
         $user->setPassword($hashedPassword);
 
@@ -104,25 +110,26 @@ class UserService
         $credentials = json_decode($request->getContent(), true);
 
         if (!isset($credentials['username'], $credentials['password']) || !$credentials) {
-            return new JsonResponse('Missing credentials', Response::HTTP_UNAUTHORIZED);
+//            return new JsonResponse('Missing credentials', Response::HTTP_UNAUTHORIZED);
+            return ['error' => 'Missing credentials'];
         }
 
         $username = $credentials['username'];
         $password = $credentials['password'];
-        //dd($username, $password);
 
         $user = $this->repository->findOneBy(['username' => $username]);
         //dd($user);
 
         if (!$user instanceof UserInterface || !$this->passwordHasher->isPasswordValid($user, $password)) {
-            return new JsonResponse(['error' => 'Invalid credentials'], Response::HTTP_UNAUTHORIZED);
+//            return new JsonResponse(['error' => 'Invalid credentials'], Response::HTTP_UNAUTHORIZED);
+            return ['error' => 'Invalid credentials'];
         }
 
         $token = $tokenManager->create($user);
         $refreshToken = $refreshTokenManager->create();
         $refreshToken->setUsername($user->getUsername());
         $refreshToken->setRefreshToken(bin2hex(random_bytes(16)));
-        $validityPeriod = new \DateTime('+30 days');
+        $validityPeriod = new \DateTime('+31 days');
         $refreshToken->setValid($validityPeriod);
         $refreshTokenManager->save($refreshToken);
 
