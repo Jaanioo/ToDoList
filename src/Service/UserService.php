@@ -3,16 +3,12 @@
 namespace App\Service;
 
 use App\DTO\CreateUserDTO;
-use App\DTO\LoginDTO;
 use App\Entity\User;
 use App\Factory\UserDTOFactory;
 use App\Interface\UserRepositoryInterface;
 use Gesdinet\JWTRefreshTokenBundle\Model\RefreshTokenManagerInterface;
-use JMS\Serializer\Serializer;
 use JMS\Serializer\SerializerInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
-use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
@@ -20,7 +16,7 @@ use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
-use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class UserService
 {
@@ -29,7 +25,8 @@ class UserService
         private readonly UserRepositoryInterface $repository,
         private readonly UserPasswordHasherInterface $passwordHasher,
         private readonly MailerInterface $mailer,
-        private readonly SerializerInterface $serializer
+        private readonly SerializerInterface $serializer,
+        private readonly ValidatorInterface $validator
     ) {
     }
 
@@ -64,19 +61,18 @@ class UserService
     public function newUserDTO(
         Request $request,
         UserPasswordHasherInterface $passwordHasher
-    ): object {
-//        $userEmail = $request->get('email');
-//        $plainTextPassword = $request->get('password');
+    ): object|array {
         $data = $this->serializer->deserialize($request->getContent(), CreateUserDTO::class, 'json');
 
-        //Validation email format
-        if (!filter_var($data->getEmail(), FILTER_VALIDATE_EMAIL)) {
-            throw new \InvalidArgumentException('Invalid email format');
-        }
+        $errors = $this->validator->validate($data);
+        //dd($errors);
 
-        // Validate password length
-        if (!preg_match('/^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/', $data->getPassword())) {
-            throw new \InvalidArgumentException('Invalid password format.');
+        if (count($errors) > 0) {
+            $errorMessages = [];
+            foreach ($errors as $error) {
+                $errorMessages[$error->getPropertyPath()] = $error->getMessage();
+            }
+            return $errorMessages;
         }
 
         $user = new User();

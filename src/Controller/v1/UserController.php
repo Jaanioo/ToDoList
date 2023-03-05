@@ -2,12 +2,8 @@
 
 namespace App\Controller\v1;
 
-use App\Entity\RefreshToken;
 use App\Repository\UserRepository;
 use App\Service\UserService;
-use Doctrine\ORM\EntityManagerInterface;
-use Gesdinet\JWTRefreshTokenBundle\Doctrine\RefreshTokenRepositoryInterface;
-use Gesdinet\JWTRefreshTokenBundle\Entity\RefreshTokenRepository;
 use Gesdinet\JWTRefreshTokenBundle\Model\RefreshTokenManagerInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Psr\Log\LoggerInterface;
@@ -55,7 +51,7 @@ class UserController extends AbstractController
     public function registerUser(Request $request): JsonResponse
     {
         try {
-            $data = $this->userService->newUserDTO($request, $this->passwordHasher);
+            $response = $this->userService->newUserDTO($request, $this->passwordHasher);
             $this->logger->info('User registered successfully');
         } catch (\Exception $exception) {
             $this->logger->error('An error occurred while registered', ['exception' => $exception]);
@@ -64,11 +60,13 @@ class UserController extends AbstractController
                 Response::HTTP_BAD_REQUEST
             );
         }
-
-        return $this->json(
-            'Created new user successfully with id: ' . $data->id,
-            Response::HTTP_CREATED
-        );
+        if (is_array($response)) {
+            return $this->json($response, Response::HTTP_BAD_REQUEST);
+        }
+            return $this->json(
+                'Created new user successfully.',
+                Response::HTTP_CREATED
+            );
     }
 
     #[Route('/login', name: 'api_login')]

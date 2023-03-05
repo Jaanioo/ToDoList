@@ -2,11 +2,13 @@
 
 namespace App\Service;
 
+use App\DTO\CreateTaskDTO;
 use App\Entity\Task;
 use App\Exception\TaskNotFoundException;
 use App\Factory\TaskDTOFactory;
 use App\Interface\TaskRepositoryInterface;
 use App\Interface\UserRepositoryInterface;
+use JMS\Serializer\SerializerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -21,7 +23,8 @@ class TaskService
         private readonly TaskDTOFactory $taskDTOFactory,
         private readonly TaskRepositoryInterface $repository,
         private readonly UserRepositoryInterface $userRepository,
-        private readonly SecurityService $securityService
+        private readonly SecurityService $securityService,
+        private readonly SerializerInterface $serializer
     ) {
 
         //old PHP version
@@ -123,9 +126,11 @@ class TaskService
             return new JsonResponse(['error' => 'User not found']);
         }
 
+        $data = $this->serializer->deserialize($request->getContent(), CreateTaskDTO::class, 'json');
+
         $task = new Task();
-        $task->setDescription($request->get('description'));
-        $task->setCompleted($request->get('completed'));
+        $task->setDescription($data->getDescription());
+        $task->setCompleted($data->isCompleted());
 
         $user->addTask($task);
 
@@ -146,9 +151,9 @@ class TaskService
             throw new TaskNotFoundException($id);
         }
 
-        $parametr = json_decode($request->getContent(), true, 512, JSON_THROW_ON_ERROR);
-        $task->setDescription($parametr['description']);
-        $task->setCompleted($parametr['completed']);
+        $data = $this->serializer->deserialize($request->getContent(), CreateTaskDTO::class, 'json');
+        $task->setDescription($data['description']);
+        $task->setCompleted($data['completed']);
         $this->repository->save($task, true);
 
         return $this->taskDTOFactory->getDTOFromTask($task);
