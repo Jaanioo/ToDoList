@@ -126,4 +126,10 @@ class UserController extends AbstractController
             Response::HTTP_OK
         );
     }
+
+    #[Route('/logout', name: 'api_logout')]
+    public function logout(): Response
+    {
+        return new Response('', Response::HTTP_NO_CONTENT);
+    }
 }

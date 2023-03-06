@@ -41,5 +41,4 @@ class CreateTaskDTO
     {
         $this->completed = $completed;
     }
-
 }

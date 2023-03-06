@@ -51,5 +51,4 @@ class ChangePasswordUserDTO
     {
         $this->password = $password;
     }
-
 }

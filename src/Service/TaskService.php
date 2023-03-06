@@ -32,7 +32,7 @@ class TaskService
 //        $this->repository = $repository;
     }
 
-    public function getAllTasksForUserDTO(Security $security): array
+    public function getAllTasksForUserDTO(Security $security): array|JsonResponse
     {
         $userId = $this->securityService->getCurrentUserId($security);
 
@@ -57,7 +57,7 @@ class TaskService
         return $data;
     }
 
-    public function getTasksOnCompletedForUserDTO(Security $security, bool $bool): array
+    public function getTasksOnCompletedForUserDTO(Security $security, bool $bool): array|JsonResponse
     {
         $userId = $this->securityService->getCurrentUserId($security);
 
