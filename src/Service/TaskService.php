@@ -2,7 +2,7 @@
 
 namespace App\Service;
 
-use App\DTO\CreateTaskDTO;
+use App\DTO\TaskDTO\CreateTaskDTO;
 use App\Entity\Task;
 use App\Exception\TaskNotFoundException;
 use App\Factory\TaskDTOFactory;

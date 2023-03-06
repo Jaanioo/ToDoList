@@ -107,7 +107,7 @@ class UserController extends AbstractController
     public function forgotPassword(MailerInterface $mailer, Request $request): JsonResponse
     {
         try {
-            $this->userService->changePassword($mailer, $request, $this->passwordHasher);
+            $response = $this->userService->changePassword($mailer, $request, $this->passwordHasher);
             $this->logger->info('Password changed successfully');
         } catch (\Exception $exception) {
             $this->logger->error('An error occurred while changing password', ['exception' => $exception]);
@@ -115,6 +115,10 @@ class UserController extends AbstractController
                 ['An error occurred: ' => $exception->getMessage()],
                 Response::HTTP_NOT_FOUND
             );
+        }
+
+        if (is_array($response)) {
+            return $this->json($response, Response::HTTP_BAD_REQUEST);
         }
 
         return $this->json(

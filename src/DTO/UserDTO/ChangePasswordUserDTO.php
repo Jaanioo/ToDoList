@@ -1,10 +1,10 @@
 <?php
 
-namespace App\DTO;
+namespace App\DTO\UserDTO;
 
 use Symfony\Component\Validator\Constraints as Assert;
 
-class CreateUserDTO
+class ChangePasswordUserDTO
 {
     public function __construct(
         /**
@@ -16,12 +16,7 @@ class CreateUserDTO
          * @Assert\NotBlank()
          * @Assert\Length(min=8, max=255)
          */
-        public string $password,
-        /**
-         * @Assert\NotBlank()
-         * @Assert\Length(min=3, max=255)
-         */
-        public string $username
+        public string $password
     ) {
     }
 
@@ -57,19 +52,4 @@ class CreateUserDTO
         $this->password = $password;
     }
 
-    /**
-     * @return string
-     */
-    public function getUsername(): string
-    {
-        return $this->username;
-    }
-
-    /**
-     * @param string $username
-     */
-    public function setUsername(string $username): void
-    {
-        $this->username = $username;
-    }
 }

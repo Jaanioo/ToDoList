@@ -2,7 +2,7 @@
 
 namespace App\Factory;
 
-use App\DTO\UserDTO;
+use App\DTO\UserDTO\UserDTO;
 use App\Entity\User;
 
 class UserDTOFactory

@@ -1,11 +1,21 @@
 <?php
 
-namespace App\DTO;
+namespace App\DTO\UserDTO;
 
-class LoginDTO
+use Symfony\Component\Validator\Constraints as Assert;
+
+class LoginUserDTO
 {
     public function __construct(
+        /**
+         * @Assert\NotBlank()
+         * @Assert\Length(min=8, max=255)
+         */
         public string $password,
+        /**
+         * @Assert\NotBlank()
+         * @Assert\Length(min=3, max=255)
+         */
         public string $username
     ) {
     }
@@ -41,5 +51,4 @@ class LoginDTO
     {
         $this->username = $username;
     }
-
 }

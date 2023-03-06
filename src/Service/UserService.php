@@ -2,8 +2,9 @@
 
 namespace App\Service;
 
-use App\DTO\CreateUserDTO;
-use App\DTO\LoginUserDTO;
+use App\DTO\UserDTO\ChangePasswordUserDTO;
+use App\DTO\UserDTO\CreateUserDTO;
+use App\DTO\UserDTO\LoginUserDTO;
 use App\Entity\User;
 use App\Factory\UserDTOFactory;
 use App\Interface\UserRepositoryInterface;
@@ -63,9 +64,9 @@ class UserService
         Request $request,
         UserPasswordHasherInterface $passwordHasher
     ): object|array {
-        $data = $this->serializer->deserialize($request->getContent(), CreateUserDTO::class, 'json');
+        $credentials = $this->serializer->deserialize($request->getContent(), CreateUserDTO::class, 'json');
 
-        $errors = $this->validator->validate($data);
+        $errors = $this->validator->validate($credentials);
         //dd($errors);
 
         if (count($errors) > 0) {
@@ -77,12 +78,12 @@ class UserService
         }
 
         $user = new User();
-        $user->setEmail($data->getEmail());
-        $user->setUsername($data->getUsername());
+        $user->setEmail($credentials->getEmail());
+        $user->setUsername($credentials->getUsername());
 
         $hashedPassword = $passwordHasher->hashPassword(
             $user,
-            $data->getPassword()
+            $credentials->getPassword()
         );
         $user->setPassword($hashedPassword);
 
@@ -152,29 +153,41 @@ class UserService
         MailerInterface $mailer,
         Request $request,
         UserPasswordHasherInterface $passwordHasher
-    ): object {
-        $userEmail = $request->get('email');
-        $newPasswordPlain = $request->get('password');
+    ): object|array {
+//        $userEmail = $request->get('email');
+//        $newPasswordPlain = $request->get('password');
+        $credentials = $this->serializer->deserialize($request->getContent(), ChangePasswordUserDTO::class, 'json');
 
-        //Validation email format
-        if (!filter_var($userEmail, FILTER_VALIDATE_EMAIL)) {
-            throw new \InvalidArgumentException('Invalid email format');
+        $errors = $this->validator->validate($credentials);
+
+        if (count($errors) > 0) {
+            $errorMessages = [];
+
+            foreach ($errors as $error) {
+                $errorMessages[$error->getPropertyPath()][] = $error->getMessage();
+            }
+
+            return ['error' => $errorMessages];
         }
 
-        // Validate password length
-        if (!preg_match('/^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/', $newPasswordPlain)) {
-            throw new \InvalidArgumentException('Invalid password format.');
-        }
-
-        $user = $this->repository->findOneBy(['email' => $userEmail]);
+        $user = $this->repository->findOneBy(['email' => $credentials->getEmail()]);
 
         if (!$user) {
-            throw new NotFoundHttpException($userEmail);
+            throw new NotFoundHttpException($credentials->getEmail());
+        }
+
+        if (
+            $this->passwordHasher->isPasswordValid(
+                $user,
+                $credentials->getPassword()
+            )
+        ) {
+            return ['error' => 'Password is same as previous.'];
         }
 
         $newPasswordHashed = $passwordHasher->hashPassword(
             $user,
-            $newPasswordPlain
+            $credentials->getPassword()
         );
 
         $user->setPassword($newPasswordHashed);

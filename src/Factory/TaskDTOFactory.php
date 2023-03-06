@@ -2,7 +2,7 @@
 
 namespace App\Factory;
 
-use App\DTO\TaskDTO;
+use App\DTO\TaskDTO\TaskDTO;
 use App\Entity\Task;
 
 class TaskDTOFactory
