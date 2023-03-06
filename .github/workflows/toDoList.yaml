@@ -11,6 +11,9 @@ jobs:
         with:
           php-version: '7.4'
           extensions: intl, pdo_mysql
+      - name: Update dependencies
+        run: |
+          composer update
       - name: Install dependencies
         run: |
           composer install
