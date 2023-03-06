@@ -77,6 +77,14 @@ class UserController extends AbstractController
     ): JsonResponse {
         try {
             $data = $this->userService->loginUser($request, $tokenManager, $refreshTokenManager);
+
+            if (isset($data['error'])) {
+                return $this->json(
+                    ['error' => $data['error']],
+                    Response::HTTP_UNAUTHORIZED
+                );
+            }
+
             $token = $data['token'];
             $refreshToken = $data['refresh_token'];
             $this->logger->info('User logged in successfully');

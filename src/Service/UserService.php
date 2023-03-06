@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use App\DTO\CreateUserDTO;
+use App\DTO\LoginUserDTO;
 use App\Entity\User;
 use App\Factory\UserDTOFactory;
 use App\Interface\UserRepositoryInterface;
@@ -103,20 +104,30 @@ class UserService
         JWTTokenManagerInterface $tokenManager,
         RefreshTokenManagerInterface $refreshTokenManager
     ): array {
-        $credentials = json_decode($request->getContent(), true);
+        $credentials = $this->serializer->deserialize($request->getContent(), LoginUserDTO::class, 'json');
+        $loginUserDto = new LoginUserDTO($credentials->getPassword(), $credentials->getUsername());
 
-        if (!isset($credentials['username'], $credentials['password']) || !$credentials) {
-//            return new JsonResponse('Missing credentials', Response::HTTP_UNAUTHORIZED);
-            return ['error' => 'Missing credentials'];
+        $errors = $this->validator->validate($loginUserDto);
+
+        if (count($errors) > 0) {
+            $errorMessages = [];
+
+            foreach ($errors as $error) {
+                $errorMessages[$error->getPropertyPath()][] = $error->getMessage();
+            }
+
+            return ['error' => $errorMessages];
         }
 
-        $username = $credentials['username'];
-        $password = $credentials['password'];
-
-        $user = $this->repository->findOneBy(['username' => $username]);
+        $user = $this->repository->findOneBy(['username' => $loginUserDto->getUsername()]);
         //dd($user);
 
-        if (!$user instanceof UserInterface || !$this->passwordHasher->isPasswordValid($user, $password)) {
+        if (
+            !$user instanceof UserInterface || !$this->passwordHasher->isPasswordValid(
+                $user,
+                $loginUserDto->getPassword()
+            )
+        ) {
 //            return new JsonResponse(['error' => 'Invalid credentials'], Response::HTTP_UNAUTHORIZED);
             return ['error' => 'Invalid credentials'];
         }
