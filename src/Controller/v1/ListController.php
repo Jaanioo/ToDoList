@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Controller;
+namespace App\Controller\v1;
 
 use App\Entity\Task;
 use App\Repository\TaskRepository;
@@ -12,9 +12,9 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class ListController extends AbstractController
 {
-
     public function __construct(TaskRepository $taskRepository)
-    {}
+    {
+    }
 
     #[Route('/', name: 'app_homepage')]
     public function homepage(EntityManagerInterface $entityManager): Response
@@ -35,7 +35,8 @@ class ListController extends AbstractController
     }
 
     #[Route('/new', name: 'app_list_newtask')]
-    public function newTask(EntityManagerInterface $entityManager, Request $request): Response {
+    public function newTask(EntityManagerInterface $entityManager, Request $request): Response
+    {
 
         $task = new Task();
         $stringText = $request->request->get('newTask');
@@ -49,7 +50,8 @@ class ListController extends AbstractController
     }
 
     #[Route('/{id}/delete', name: 'app_list_deletetask')]
-    public function deleteTask(Task $task, EntityManagerInterface $entityManager): Response {
+    public function deleteTask(Task $task, EntityManagerInterface $entityManager): Response
+    {
 
         $entityManager->remove($task);
         $entityManager->flush();
