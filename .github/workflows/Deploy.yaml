@@ -56,7 +56,7 @@ steps:
   - name: Deploy to EC2
     uses: easingthemes/ssh-deploy@main
     with:
-      sshPrivateKey: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      sshPrivateKey: ${{ secrets.SSH_PRIVATE_KEY }}
       remoteHost: 3.137.169.190
       remoteUser: root
 
