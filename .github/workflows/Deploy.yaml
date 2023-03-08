@@ -58,7 +58,7 @@ steps:
     with:
       sshPrivateKey: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       remoteHost: 3.137.169.190
-      remoteUser: Jaanioo
+      remoteUser: root
 
   - name: Build and Run Docker Containers on VPS
     run: |
