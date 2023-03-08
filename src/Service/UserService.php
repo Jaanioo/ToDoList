@@ -20,15 +20,15 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
-class UserService
+readonly class UserService
 {
     public function __construct(
-        private readonly UserDTOFactory $userDTOFactory,
-        private readonly UserRepositoryInterface $repository,
-        private readonly UserPasswordHasherInterface $passwordHasher,
-        private readonly MailerInterface $mailer,
-        private readonly SerializerInterface $serializer,
-        private readonly ValidatorInterface $validator
+        private UserDTOFactory $userDTOFactory,
+        private UserRepositoryInterface $repository,
+        private UserPasswordHasherInterface $passwordHasher,
+        private MailerInterface $mailer,
+        private SerializerInterface $serializer,
+        private ValidatorInterface $validator
     ) {
     }
 
