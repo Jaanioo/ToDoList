@@ -34,33 +34,33 @@ steps:
       username: Jaanioo
       password: ${{ secrets.VPS_PASSWORD }}
 
-  - name: Install Docker on VPS
-    run: |
-      sudo apt-get update
-      sudo apt-get install -y docker.io
-    env:
-      DOCKER_COMPOSE_VERSION: 1.29.2
-
-  - name: Install Docker Compose on VPS
-    run: |
-      sudo curl -L "https://github.com/docker/compose/releases/download/2.15.1/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-      sudo chmod +x /usr/local/bin/docker-compose
-
-  - name: Clone Git Repository on VPS
-    run: |
-      git clone https://github.com/Jaanioo/ToDoList.git
-    env:
-      GIT_USERNAME: Jaanioo
-      GIT_PASSWORD: ${{ secrets.GIT_PASSWORD }}
-
-  - name: Deploy to EC2
-    uses: easingthemes/ssh-deploy@main
-    with:
-      sshPrivateKey: ${{ secrets.SSH_PRIVATE_KEY }}
-      remoteHost: 3.137.169.190
-      remoteUser: Jaanioo
-
-  - name: Build and Run Docker Containers on VPS
-    run: |
-      cd your_repository
-      sudo docker-compose up -d --build
+#  - name: Install Docker on VPS
+#    run: |
+#      sudo apt-get update
+#      sudo apt-get install -y docker.io
+#    env:
+#      DOCKER_COMPOSE_VERSION: 1.29.2
+#
+#  - name: Install Docker Compose on VPS
+#    run: |
+#      sudo curl -L "https://github.com/docker/compose/releases/download/2.15.1/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+#      sudo chmod +x /usr/local/bin/docker-compose
+#
+#  - name: Clone Git Repository on VPS
+#    run: |
+#      git clone https://github.com/Jaanioo/ToDoList.git
+#    env:
+#      GIT_USERNAME: Jaanioo
+#      GIT_PASSWORD: ${{ secrets.GIT_PASSWORD }}
+#
+#  - name: Deploy to EC2
+#    uses: easingthemes/ssh-deploy@main
+#    with:
+#      sshPrivateKey: ${{ secrets.SSH_PRIVATE_KEY }}
+#      remoteHost: 3.137.169.190
+#      remoteUser: Jaanioo
+#
+#  - name: Build and Run Docker Containers on VPS
+#    run: |
+#      cd your_repository
+#      sudo docker-compose up -d --build
