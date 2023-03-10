@@ -22,7 +22,7 @@ jobs:
       - name: Adding Known Hosts
         run: ssh-keyscan -p 22 -H 3.137.169.190  >> ~/.ssh/known_hosts
 
-      - name: pull project
+      - name: fetch code
         uses: appleboy/ssh-action@master
         with:
           host: 3.137.169.190
@@ -37,6 +37,24 @@ jobs:
             git reset --hard FETCH_HEAD
             git clean -d -f --exclude secrets
             git pull 
+
+      - name: composer install
+        uses: appleboy/ssh-action@master
+        with:
+          host: 3.137.169.190
+          username: ubuntu #Jaanioo
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22
+          script: |
             docker compose up -d
             docker exec php82-container composer install
+
+      - name: run migration
+        uses: appleboy/ssh-action@master
+        with:
+          host: 3.137.169.190
+          username: ubuntu #Jaanioo
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22
+          script: |
             docker exec php82-container bin/console doctrine:migrations:migrate --no-interaction
