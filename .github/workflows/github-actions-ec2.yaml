@@ -39,5 +39,4 @@ jobs:
             git pull 
             docker compose up -d
             docker exec php82-container composer install
-            php/bin console make:migration
-            php/bin console doctrine:migrations:migrate --no_interaction
+            docker exec php82-container bin/console doctrine:migrations:migrate --no_interaction
