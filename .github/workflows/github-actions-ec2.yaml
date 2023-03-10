@@ -40,4 +40,5 @@ jobs:
             docker compose up -d
             docker exec php82-container composer install
             docker exec -it mysql8-container bin/bash
+            sudo symfony console doctrine:migrations:migrate --no_interaction
             symfony console doctrine:migrations:migrate --no_interaction
