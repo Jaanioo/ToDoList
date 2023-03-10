@@ -39,6 +39,5 @@ jobs:
             git pull 
             docker compose up -d
             docker exec php82-container composer install
-            exit
             symfony console make:migration
             symfony console doctrine:migrations:migrate --no_interaction
