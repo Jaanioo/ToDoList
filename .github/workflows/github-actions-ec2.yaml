@@ -38,3 +38,4 @@ jobs:
             git clean -d -f --exclude secrets
             git pull 
             docker compose up -d
+            docker exec php82-container composer install
