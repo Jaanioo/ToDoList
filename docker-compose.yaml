@@ -47,6 +47,8 @@ services:
         environment:
             MYSQL_ROOT_PASSWORD: secret
             MYSQL_PASSWORD: secret
+            user: "1000:1000"  # Set the user and group IDs
+            working_dir: /var/lib/mysql
         networks:
             - nginx-php82-mysql8-node
 
