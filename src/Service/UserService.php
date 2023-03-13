@@ -11,7 +11,10 @@ use App\Interface\UserRepositoryInterface;
 use Gesdinet\JWTRefreshTokenBundle\Model\RefreshTokenManagerInterface;
 use JMS\Serializer\SerializerInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
+use PHPUnit\Util\Json;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use Symfony\Component\Mailer\MailerInterface;
@@ -80,9 +83,10 @@ readonly class UserService
         $user = new User();
 
         if ($this->repository->findOneBy(['email' => $credentials->getEmail()])) {
-            return [
-                'email' => 'Email existed.'
-            ];
+            return new JsonResponse('Email existed.', Response::HTTP_OK);
+        }
+        if ($this->repository->findOneBy(['username' => $credentials->getUsername()])) {
+            return new JsonResponse(['Username existed'], Response::HTTP_OK);
         }
         $user->setEmail($credentials->getEmail());
         $user->setUsername($credentials->getUsername());
