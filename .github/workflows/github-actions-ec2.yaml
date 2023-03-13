@@ -33,10 +33,10 @@ jobs:
             cd var
             cd www
             cd ToDoList
-            git fetch
-            git reset --hard FETCH_HEAD
-            git clean -d -f --exclude secrets
-            git pull 
+            sudo git fetch
+            sudo git reset --hard FETCH_HEAD
+            sudo git clean -d -f --exclude secrets
+            sudo git pull 
 
       - name: composer install
         uses: appleboy/ssh-action@master
