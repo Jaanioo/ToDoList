@@ -68,6 +68,9 @@
         ],
         "post-update-cmd": [
             "@auto-scripts"
+        ],
+        "run-tests": [
+            "vendor/phpunit/phpunit/phpunit"
         ]
     },
     "conflict": {
