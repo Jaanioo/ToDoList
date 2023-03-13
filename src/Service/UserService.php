@@ -78,6 +78,12 @@ readonly class UserService
         }
 
         $user = new User();
+
+        if ($this->repository->findOneBy(['email' => $credentials->getEmail()])) {
+            return [
+                'email' => 'Email existed.'
+            ];
+        }
         $user->setEmail($credentials->getEmail());
         $user->setUsername($credentials->getUsername());
 

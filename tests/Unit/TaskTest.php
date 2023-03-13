@@ -2,7 +2,10 @@
 
 namespace App\Tests\Unit;
 
+use App\Controller\v1\TaskController;
+use App\Service\TaskService;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\HttpFoundation\JsonResponse;
 
 class TaskTest extends TestCase
 {
