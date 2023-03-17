@@ -10,7 +10,6 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
 
@@ -102,10 +101,10 @@ class UserController extends AbstractController
     }
 
     #[Route('/change', name: 'api_forgot_password', methods: ['POST'])]
-    public function forgotUserPassword(MailerInterface $mailer, Request $request): JsonResponse
+    public function forgotUserPassword(Request $request): JsonResponse
     {
         try {
-            $response = $this->userService->changePassword($mailer, $request, $this->passwordHasher);
+            $response = $this->userService->changePassword($request, $this->passwordHasher);
             $this->logger->info('Password changed successfully');
         } catch (\Exception $exception) {
             $this->logger->error('An error occurred while changing password', ['exception' => $exception]);

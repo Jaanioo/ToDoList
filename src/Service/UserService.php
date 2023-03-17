@@ -17,8 +17,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
-use Symfony\Component\Mailer\MailerInterface;
-use Symfony\Component\Mime\Email;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
@@ -29,9 +27,10 @@ class UserService
         private readonly UserDTOFactory $userDTOFactory,
         private readonly UserRepositoryInterface $repository,
         private readonly UserPasswordHasherInterface $passwordHasher,
-        private readonly MailerInterface $mailer,
         private readonly SerializerInterface $serializer,
-        private readonly ValidatorInterface $validator
+        private readonly ValidatorInterface $validator,
+        private readonly MailerService $mailer,
+        private readonly TokenService $tokenService
     ) {
     }
 
@@ -70,14 +69,13 @@ class UserService
         $credentials = $this->serializer->deserialize($request->getContent(), CreateUserDTO::class, 'json');
 
         $errors = $this->validator->validate($credentials);
-        //dd($errors);
 
         if (count($errors) > 0) {
             $errorMessages = [];
             foreach ($errors as $error) {
                 $errorMessages[$error->getPropertyPath()] = $error->getMessage();
             }
-            return $errorMessages;
+            return $errorMessages; // tu nie error tylko exception jakies
         }
 
         if ($this->repository->findOneBy(['email' => $credentials->getEmail()])) {
@@ -97,15 +95,9 @@ class UserService
         );
         $user->setPassword($hashedPassword);
 
-        $email = (new Email())
-            ->from($_ENV['FROM_EMAIL'])
-            ->to($user->getEmail())
-            ->subject('Welcome to ToDoList!')
-            ->text('Nice to meet you ' . $user->getUsername() . "! ❤️");
-
-        $this->mailer->send($email);
-
         $this->repository->save($user, true);
+
+        $this->mailer->sendWelcomeEmail($user);
 
         return $this->userDTOFactory->getDTOFromUser($user);
     }
@@ -134,7 +126,6 @@ class UserService
         }
 
         $user = $this->repository->findOneBy(['username' => $loginUserDto->getUsername()]);
-        //dd($user);
 
         if (
             !$user instanceof UserInterface || !$this->passwordHasher->isPasswordValid(
@@ -142,33 +133,19 @@ class UserService
                 $loginUserDto->getPassword()
             )
         ) {
-//            return new JsonResponse(['error' => 'Invalid credentials'], Response::HTTP_UNAUTHORIZED);
             return ['error' => 'Invalid credentials'];
         }
 
-        $token = $tokenManager->create($user);
-        $refreshToken = $refreshTokenManager->create();
-        $refreshToken->setUsername($user->getUsername());
-        $refreshToken->setRefreshToken(bin2hex(random_bytes(16)));
-        $validityPeriod = new \DateTime('+31 days');
-        $refreshToken->setValid($validityPeriod);
-        $refreshTokenManager->save($refreshToken);
-
-        return [
-            'token' => $token,
-            'refresh_token' => $refreshToken->getRefreshToken()];
+        return $this->tokenService->createToken($user);
     }
 
     /**
      * @throws TransportExceptionInterface
      */
     public function changePassword(
-        MailerInterface $mailer,
         Request $request,
         UserPasswordHasherInterface $passwordHasher
     ): object|array {
-//        $userEmail = $request->get('email');
-//        $newPasswordPlain = $request->get('password');
         $credentials = $this->serializer->deserialize($request->getContent(), ChangePasswordUserDTO::class, 'json');
 
         $errors = $this->validator->validate($credentials);
@@ -206,13 +183,7 @@ class UserService
         $user->setPassword($newPasswordHashed);
         $this->repository->save($user, true);
 
-        $email = (new Email())
-            ->from('janpalen@example.com')
-            ->to($user->getEmail())
-            ->subject('Password change in ToDoList!')
-            ->text('Your password is changed.  ' . $user->getUsername() . "!");
-
-        $mailer->send($email);
+        $this->mailer->sendChangingPasswEmail($user);
 
         return $this->userDTOFactory->getDTOFromUser($user);
     }
