@@ -1,8 +1,7 @@
 <?php
 
-namespace App\Controller\v1;
+namespace App\Controller\API\v1;
 
-use App\Repository\UserRepository;
 use App\Service\UserService;
 use Gesdinet\JWTRefreshTokenBundle\Model\RefreshTokenManagerInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
@@ -21,8 +20,7 @@ class UserController extends AbstractController
     public function __construct(
         private readonly UserService $userService,
         private readonly UserPasswordHasherInterface $passwordHasher,
-        private readonly LoggerInterface $logger,
-        private readonly UserRepository $repository
+        private readonly LoggerInterface $logger
     ) {
     }
 
@@ -130,6 +128,6 @@ class UserController extends AbstractController
     #[Route('/logout', name: 'api_logout')]
     public function logout(): Response
     {
-        return new Response('', Response::HTTP_NO_CONTENT);
+        return new Response('Logout', Response::HTTP_NO_CONTENT);
     }
 }

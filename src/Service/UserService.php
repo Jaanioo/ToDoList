@@ -6,12 +6,12 @@ use App\DTO\UserDTO\ChangePasswordUserDTO;
 use App\DTO\UserDTO\CreateUserDTO;
 use App\DTO\UserDTO\LoginUserDTO;
 use App\Entity\User;
-use App\Factory\UserDTOFactory;
+use App\Builder\UserDTOFactory;
 use App\Interface\UserRepositoryInterface;
+use Exception;
 use Gesdinet\JWTRefreshTokenBundle\Model\RefreshTokenManagerInterface;
 use JMS\Serializer\SerializerInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
-use PHPUnit\Util\Json;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -23,15 +23,15 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
-readonly class UserService
+class UserService
 {
     public function __construct(
-        private UserDTOFactory $userDTOFactory,
-        private UserRepositoryInterface $repository,
-        private UserPasswordHasherInterface $passwordHasher,
-        private MailerInterface $mailer,
-        private SerializerInterface $serializer,
-        private ValidatorInterface $validator
+        private readonly UserDTOFactory $userDTOFactory,
+        private readonly UserRepositoryInterface $repository,
+        private readonly UserPasswordHasherInterface $passwordHasher,
+        private readonly MailerInterface $mailer,
+        private readonly SerializerInterface $serializer,
+        private readonly ValidatorInterface $validator
     ) {
     }
 
@@ -80,14 +80,14 @@ readonly class UserService
             return $errorMessages;
         }
 
-        $user = new User();
-
         if ($this->repository->findOneBy(['email' => $credentials->getEmail()])) {
             return new JsonResponse('Email existed.', Response::HTTP_OK);
         }
         if ($this->repository->findOneBy(['username' => $credentials->getUsername()])) {
             return new JsonResponse(['Username existed'], Response::HTTP_OK);
         }
+
+        $user = new User();
         $user->setEmail($credentials->getEmail());
         $user->setUsername($credentials->getUsername());
 
@@ -110,6 +110,9 @@ readonly class UserService
         return $this->userDTOFactory->getDTOFromUser($user);
     }
 
+    /**
+     * @throws Exception
+     */
     public function loginUser(
         Request $request,
         JWTTokenManagerInterface $tokenManager,

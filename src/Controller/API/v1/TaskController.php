@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Controller\v1;
+namespace App\Controller\API\v1;
 
 use App\Exception\TaskNotFoundException;
 use App\Service\TaskService;

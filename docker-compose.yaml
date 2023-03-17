@@ -25,7 +25,7 @@ services:
     php82-service:
         build:
             context: .
-            dockerfile: ./php/Dockerfile
+            dockerfile: .github/Docker/php/Dockerfile
         container_name: php82-container
         ports:
             -   "9000:9000"

@@ -5,7 +5,7 @@ namespace App\Service;
 use App\DTO\TaskDTO\CreateTaskDTO;
 use App\Entity\Task;
 use App\Exception\TaskNotFoundException;
-use App\Factory\TaskDTOFactory;
+use App\Builder\TaskDTOFactory;
 use App\Interface\TaskRepositoryInterface;
 use App\Interface\UserRepositoryInterface;
 use JMS\Serializer\SerializerInterface;

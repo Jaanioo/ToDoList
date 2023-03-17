@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Factory;
+namespace App\Builder;
 
 use App\DTO\TaskDTO\TaskDTO;
 use App\Entity\Task;
