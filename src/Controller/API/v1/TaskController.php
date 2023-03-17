@@ -22,7 +22,7 @@ class TaskController extends AbstractController
     }
 
     #[Route('/user', name: 'tasks_for_user', methods: ['GET'])]
-    public function getTasksForUser(Security $security): JsonResponse
+    public function displayAllTasksForUser(Security $security): JsonResponse
     {
         try {
             $data = $this->taskService->getAllTasksForUserDTO($security);
@@ -43,7 +43,7 @@ class TaskController extends AbstractController
 
     //There is need to pass int value representing bool ( 0=false 1=true)
     #[Route('/user/{bool}', name: 'task_on_completed', methods: ['GET'])]
-    public function getTasksOnCompletedForUser(Security $security, bool $bool): JsonResponse
+    public function displayTasksOnCompletedForUser(Security $security, bool $bool): JsonResponse
     {
         try {
             $data = $this->taskService->getTasksOnCompletedForUserDTO($security, $bool);
@@ -64,7 +64,7 @@ class TaskController extends AbstractController
 
     //GETTING TASKS WITHOUT USERS
     #[Route('/all', name: 'task_index', methods: ['GET'])]
-    public function getAllTasks(): JsonResponse
+    public function displayAllTasks(): JsonResponse
     {
         try {
             $data = $this->taskService->getAllTasksDTO();
@@ -85,7 +85,7 @@ class TaskController extends AbstractController
 
     #[Route('/{id}', name: 'task_show_single', methods: ['GET'])]
     //#[ParamConverter('get', class: Task::class)]
-    public function getSingleTask(int $id): JsonResponse
+    public function displaySingleTask(int $id): JsonResponse
     {
         //return $this->json($id);
         try {
@@ -107,7 +107,7 @@ class TaskController extends AbstractController
 
     //NEW, DELETE, EDIT
     #[Route('/new', name: 'task_new', methods: ['POST'])]
-    public function newTask(Security $security, Request $request): JsonResponse
+    public function createNewTask(Security $security, Request $request): JsonResponse
     {
         try {
             $this->taskService->newTaskDTO($security, $request);

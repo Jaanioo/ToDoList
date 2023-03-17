@@ -26,7 +26,7 @@ class UserController extends AbstractController
 
 
     #[Route('/all', name: 'users_index', methods: ['GET'])]
-    public function getAllUsers(): JsonResponse
+    public function displayAllUsers(): JsonResponse
     {
         try {
             $data = $this->userService->getAllUsersDTO();
@@ -46,7 +46,7 @@ class UserController extends AbstractController
     }
 
     #[Route('/register', name: 'user_new', methods: ['POST'])]
-    public function registerUser(Request $request): JsonResponse
+    public function registerNewUser(Request $request): JsonResponse
     {
         try {
             $response = $this->userService->newUserDTO($request, $this->passwordHasher);
@@ -102,7 +102,7 @@ class UserController extends AbstractController
     }
 
     #[Route('/change', name: 'api_forgot_password', methods: ['POST'])]
-    public function forgotPassword(MailerInterface $mailer, Request $request): JsonResponse
+    public function forgotUserPassword(MailerInterface $mailer, Request $request): JsonResponse
     {
         try {
             $response = $this->userService->changePassword($mailer, $request, $this->passwordHasher);
@@ -126,7 +126,7 @@ class UserController extends AbstractController
     }
 
     #[Route('/logout', name: 'api_logout')]
-    public function logout(): Response
+    public function logoutUser(): Response
     {
         return new Response('Logout', Response::HTTP_NO_CONTENT);
     }
