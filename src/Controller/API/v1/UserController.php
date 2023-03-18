@@ -48,7 +48,7 @@ class UserController extends AbstractController
     public function registerNewUser(Request $request): JsonResponse
     {
         try {
-            $response = $this->userService->newUserDTO($request, $this->passwordHasher);
+            $this->userService->newUserDTO($request, $this->passwordHasher);
             $this->logger->info('User registered successfully');
         } catch (\Exception $exception) {
             $this->logger->error('An error occurred while registered', ['exception' => $exception]);
@@ -56,9 +56,6 @@ class UserController extends AbstractController
                 ['An error occurred: ' => $exception->getMessage()],
                 Response::HTTP_BAD_REQUEST
             );
-        }
-        if (is_array($response)) {
-            return $this->json($response, Response::HTTP_BAD_REQUEST);
         }
             return $this->json(
                 'Created new user successfully.',
@@ -68,12 +65,10 @@ class UserController extends AbstractController
 
     #[Route('/login', name: 'api_login')]
     public function loginUser(
-        Request $request,
-        JWTTokenManagerInterface $tokenManager,
-        RefreshTokenManagerInterface $refreshTokenManager
+        Request $request
     ): JsonResponse {
         try {
-            $data = $this->userService->loginUser($request, $tokenManager, $refreshTokenManager);
+            $data = $this->userService->loginUser($request);
 
             if (isset($data['error'])) {
                 return $this->json(
@@ -104,7 +99,7 @@ class UserController extends AbstractController
     public function forgotUserPassword(Request $request): JsonResponse
     {
         try {
-            $response = $this->userService->changePassword($request, $this->passwordHasher);
+            $this->userService->changePassword($request, $this->passwordHasher);
             $this->logger->info('Password changed successfully');
         } catch (\Exception $exception) {
             $this->logger->error('An error occurred while changing password', ['exception' => $exception]);
@@ -112,10 +107,6 @@ class UserController extends AbstractController
                 ['An error occurred: ' => $exception->getMessage()],
                 Response::HTTP_NOT_FOUND
             );
-        }
-
-        if (is_array($response)) {
-            return $this->json($response, Response::HTTP_BAD_REQUEST);
         }
 
         return $this->json(

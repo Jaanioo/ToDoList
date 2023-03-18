@@ -2,38 +2,43 @@
 
 namespace App\Tests\Unit;
 
+use App\Builder\TaskDTOFactory;
+use App\Entity\Task;
 use PHPUnit\Framework\TestCase;
 
 class TaskTest extends TestCase
 {
-    public function testEmpty(): array
+    public function testCreateTask(): void
     {
-        $stack = [];
-        $this->assertEmpty($stack);
+        $task = new Task();
+        $task->setDescription('abc');
+        $task->setCompleted(true);
 
-        return $stack;
+        $factory = new TaskDTOFactory();
+        $dto = $factory->getDTOFromTask($task) ;
+
+        $this->assertSame('abc', $dto->description);
+        $this->assertTrue($dto->completed);
     }
 
-//    protected $tasksAPIController;
-//    protected $taskServiceMock;
-//
-//    protected function setUp(): void
-//    {
-//        $this->taskServiceMock = $this->createMock(TaskService::class);
-//        $this->tasksAPIController = new TaskController($this->taskServiceMock);
-//    }
-//
-//    public function testGetAllTasksReturnsJson()
-//    {
-//        $testData = [
-//            ['id' => 1, 'description' => 'test', 'completed' => true],
-//            ['id' => 2, 'description' => 'testtest', 'completed' => false]
-//        ];
-//        $this->taskServiceMock->method('getAllTasksDTO')->willReturn($testData);
-//
-//        $response = $this->tasksAPIController->getAllTasks();
-//
-//        $this->assertInstanceOf(JsonResponse::class, $response);
-//        $this->assertJsonStringEqualsJsonString(json_encode($testData), $response->getContent());
-//    }
+    public function testEditTask(): void
+    {
+        $task = new Task();
+        $task->setDescription('abc');
+        $task->setCompleted(true);
+
+        $factory = new TaskDTOFactory();
+        $dto = $factory->getDTOFromTask($task);
+
+        $this->assertSame('abc', $dto->description);
+        $this->assertTrue($dto->completed);
+
+        $task->setDescription('edit');
+        $task->setCompleted(false);
+
+        $dto = $factory->getDTOFromTask($task);
+
+        $this->assertSame('edit', $dto->description);
+        $this->assertFalse($dto->completed);
+    }
 }

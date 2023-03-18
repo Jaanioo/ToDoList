@@ -23,7 +23,7 @@ class MailerService
         $this->mailer->send($email);
     }
 
-    public function sendChangingPasswEmail(User $user): void
+    public function sendChangingPasswordEmail(User $user): void
     {
         $email = (new Email())
             ->from($_ENV['FROM_EMAIL'])

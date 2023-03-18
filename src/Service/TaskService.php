@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use App\DTO\TaskDTO\CreateTaskDTO;
+use App\DTO\TaskDTO\TaskDTO;
 use App\Entity\Task;
 use App\Exception\TaskNotFoundException;
 use App\Builder\TaskDTOFactory;
@@ -10,15 +11,13 @@ use App\Interface\TaskRepositoryInterface;
 use App\Interface\UserRepositoryInterface;
 use JMS\Serializer\SerializerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\UnauthorizedHttpException;
 
 class TaskService
 {
-    //old PHP version
-//    private TaskDTOFactory $taskDTOFactory;
-//    private TaskRepository $repository;
     public function __construct(
         private readonly TaskDTOFactory $taskDTOFactory,
         private readonly TaskRepositoryInterface $repository,
@@ -26,24 +25,42 @@ class TaskService
         private readonly SecurityService $securityService,
         private readonly SerializerInterface $serializer
     ) {
-
-        //old PHP version
-//        $this->taskDTOFactory = $taskDTOFactory;
-//        $this->repository = $repository;
     }
 
-    public function getAllTasksForUserDTO(Security $security): array|JsonResponse
+//    public function getAllTasksForUserDTO(Security $security): array
+//    {
+////        //DOKONCZ TO ZEBY DAWALO USERA NIE SECURITY??????????
+//        $userId = $this->securityService->getCurrentUserId($security);
+//
+//        if ($userId === null) {
+//            throw new UnauthorizedHttpException('Unauthorized', Response::HTTP_UNAUTHORIZED);
+//        }
+//
+//        $user = $this->userRepository->find($userId);
+//
+//        if (!$user) {
+//            throw new NotFoundHttpException('User not found');
+//        }
+//
+//        $tasks = $user->getTasks();
+//
+//        $data = [];
+//
+//        foreach ($tasks as $task) {
+//            $data[] = $this->taskDTOFactory->getDTOFromTask($task);
+//        }
+//
+//        return $data;
+//    }
+    public function getAllTasksForUserDTO(): array
     {
-        $userId = $this->securityService->getCurrentUserId($security);
+//        //DOKONCZ TO ZEBY DAWALO USERA NIE SECURITY??????????
+        $currentUser = $this->securityService->getCurrentUserId();
 
-        if ($userId === null) {
-            return new JsonResponse('Unauthorized', Response::HTTP_UNAUTHORIZED);
-        }
-
-        $user = $this->userRepository->find($userId);
+        $user = $this->userRepository->find($currentUser->getId());
 
         if (!$user) {
-            return new JsonResponse(['error' => 'User not found'], Response::HTTP_NOT_FOUND);
+            throw new NotFoundHttpException('User not found');
         }
 
         $tasks = $user->getTasks();
@@ -57,18 +74,18 @@ class TaskService
         return $data;
     }
 
-    public function getTasksOnCompletedForUserDTO(Security $security, bool $bool): array|JsonResponse
+    public function getTasksOnCompletedForUserDTO(Security $security, bool $bool): array
     {
         $userId = $this->securityService->getCurrentUserId($security);
 
         if ($userId === null) {
-            return new JsonResponse('Unauthorized', Response::HTTP_UNAUTHORIZED);
+            throw new UnauthorizedHttpException('Unauthorized', Response::HTTP_UNAUTHORIZED);
         }
 
         $user = $this->userRepository->find($userId);
 
         if (!$user) {
-            return new JsonResponse(['error' => 'User not found']);
+            throw new NotFoundHttpException('User not found');
         }
 
         $tasks = $user->getTasks();
@@ -101,7 +118,7 @@ class TaskService
     /**
      * @throws TaskNotFoundException
      */
-    public function getSingleTaskDTO(int $id): object
+    public function getSingleTaskDTO(int $id): TaskDTO
     {
         $task = $this->repository->find($id);
 
@@ -112,18 +129,21 @@ class TaskService
         return $this->taskDTOFactory->getDTOFromTask($task);
     }
 
-    public function newTaskDTO(Security $security, Request $request): object
+    /**
+     * @throws \Exception
+     */
+    public function newTaskDTO(Security $security, Request $request): TaskDTO
     {
         $userId = $this->securityService->getCurrentUserId($security);
 
         if ($userId === null) {
-            return new JsonResponse('Unauthorized', Response::HTTP_UNAUTHORIZED);
+            throw new UnauthorizedHttpException('Unauthorized', Response::HTTP_UNAUTHORIZED);
         }
 
         $user = $this->userRepository->find($userId);
 
         if (!$user) {
-            return new JsonResponse(['error' => 'User not found']);
+            throw new NotFoundHttpException('User not found');
         }
 
         $data = $this->serializer->deserialize($request->getContent(), CreateTaskDTO::class, 'json');
@@ -143,7 +163,7 @@ class TaskService
      * @throws TaskNotFoundException
      * @throws \JsonException
      */
-    public function editTaskDTO(Request $request, int $id): object
+    public function editTaskDTO(Request $request, int $id): TaskDTO
     {
         $task = $this->repository->find($id);
 

@@ -5,19 +5,18 @@ namespace App\Service;
 use App\DTO\UserDTO\ChangePasswordUserDTO;
 use App\DTO\UserDTO\CreateUserDTO;
 use App\DTO\UserDTO\LoginUserDTO;
+use App\DTO\UserDTO\UserDTO;
 use App\Entity\User;
 use App\Builder\UserDTOFactory;
+use App\Exception\ValidationException;
 use App\Interface\UserRepositoryInterface;
 use Exception;
-use Gesdinet\JWTRefreshTokenBundle\Model\RefreshTokenManagerInterface;
 use JMS\Serializer\SerializerInterface;
-use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Component\Security\Core\Exception\CustomUserMessageAuthenticationException;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
@@ -48,7 +47,7 @@ class UserService
         return $data;
     }
 
-    public function getSingleUserDTO(string $email): object
+    public function getSingleUserDTO(string $email): UserDTO
     {
         $user = $this->repository->find($email);
 
@@ -61,11 +60,12 @@ class UserService
 
     /**
      * @throws TransportExceptionInterface
+     * @throws ValidationException
      */
     public function newUserDTO(
         Request $request,
         UserPasswordHasherInterface $passwordHasher
-    ): object|array {
+    ): UserDTO {
         $credentials = $this->serializer->deserialize($request->getContent(), CreateUserDTO::class, 'json');
 
         $errors = $this->validator->validate($credentials);
@@ -75,14 +75,14 @@ class UserService
             foreach ($errors as $error) {
                 $errorMessages[$error->getPropertyPath()] = $error->getMessage();
             }
-            return $errorMessages; // tu nie error tylko exception jakies
+            throw new ValidationException($errorMessages);
         }
 
         if ($this->repository->findOneBy(['email' => $credentials->getEmail()])) {
-            return new JsonResponse('Email existed.', Response::HTTP_OK);
+            throw new CustomUserMessageAuthenticationException('Email existed');
         }
         if ($this->repository->findOneBy(['username' => $credentials->getUsername()])) {
-            return new JsonResponse(['Username existed'], Response::HTTP_OK);
+            throw new CustomUserMessageAuthenticationException('Username existed');
         }
 
         $user = new User();
@@ -106,9 +106,7 @@ class UserService
      * @throws Exception
      */
     public function loginUser(
-        Request $request,
-        JWTTokenManagerInterface $tokenManager,
-        RefreshTokenManagerInterface $refreshTokenManager
+        Request $request
     ): array {
         $credentials = $this->serializer->deserialize($request->getContent(), LoginUserDTO::class, 'json');
         $loginUserDto = new LoginUserDTO($credentials->getPassword(), $credentials->getUsername());
@@ -122,7 +120,7 @@ class UserService
                 $errorMessages[$error->getPropertyPath()][] = $error->getMessage();
             }
 
-            return ['error' => $errorMessages];
+            throw new ValidationException($errorMessages);
         }
 
         $user = $this->repository->findOneBy(['username' => $loginUserDto->getUsername()]);
@@ -133,7 +131,7 @@ class UserService
                 $loginUserDto->getPassword()
             )
         ) {
-            return ['error' => 'Invalid credentials'];
+            throw new CustomUserMessageAuthenticationException('Invalid credentials');
         }
 
         return $this->tokenService->createToken($user);
@@ -141,11 +139,12 @@ class UserService
 
     /**
      * @throws TransportExceptionInterface
+     * @throws ValidationException
      */
     public function changePassword(
         Request $request,
         UserPasswordHasherInterface $passwordHasher
-    ): object|array {
+    ): UserDTO {
         $credentials = $this->serializer->deserialize($request->getContent(), ChangePasswordUserDTO::class, 'json');
 
         $errors = $this->validator->validate($credentials);
@@ -157,7 +156,7 @@ class UserService
                 $errorMessages[$error->getPropertyPath()][] = $error->getMessage();
             }
 
-            return ['error' => $errorMessages];
+            throw new ValidationException($errorMessages);
         }
 
         $user = $this->repository->findOneBy(['email' => $credentials->getEmail()]);
@@ -172,7 +171,7 @@ class UserService
                 $credentials->getPassword()
             )
         ) {
-            return ['error' => 'Password is same as previous.'];
+            throw new CustomUserMessageAuthenticationException('Password is same as previous');
         }
 
         $newPasswordHashed = $passwordHasher->hashPassword(
@@ -183,7 +182,7 @@ class UserService
         $user->setPassword($newPasswordHashed);
         $this->repository->save($user, true);
 
-        $this->mailer->sendChangingPasswEmail($user);
+        $this->mailer->sendChangingPasswordEmail($user);
 
         return $this->userDTOFactory->getDTOFromUser($user);
     }
