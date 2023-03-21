@@ -42,14 +42,13 @@ services:
             -   "3306:3306"
         volumes:
             -   ./mysql:/var/lib/mysql
-        command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+        command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --lower-case-table-names=0
 
         environment:
             MYSQL_ROOT_PASSWORD: secret
             MYSQL_PASSWORD: secret
             user: "1000"  # Set the user and group IDs
             group: "1000"
-            MYSQL_LOWER_CASE_TABLE_NAMES: 0
         networks:
             - nginx-php82-mysql8-node
 
