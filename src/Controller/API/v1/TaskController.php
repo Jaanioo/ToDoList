@@ -63,10 +63,10 @@ class TaskController extends AbstractController
 
     //There is need to pass int value representing bool ( 0=false 1=true)
     #[Route('/user/{bool}', name: 'task_on_completed', methods: ['GET'])]
-    public function displayTasksOnCompletedForUser(Security $security, bool $bool): JsonResponse
+    public function displayTasksOnCompletedForUser(bool $bool): JsonResponse
     {
         try {
-            $data = $this->taskService->getTasksOnCompletedForUserDTO($security, $bool);
+            $data = $this->taskService->getTasksOnCompletedForUserDTO($bool);
             $this->logger->info('All tasks displayed successfully', ['completed' => $bool]);
         } catch (\Exception $exception) {
             $this->logger->error('An error occurred while displaying tasks', ['exception' => $exception]);
@@ -127,10 +127,10 @@ class TaskController extends AbstractController
 
     //NEW, DELETE, EDIT
     #[Route('/new', name: 'task_new', methods: ['POST'])]
-    public function createNewTask(Security $security, Request $request): JsonResponse
+    public function createNewTask(Request $request): JsonResponse
     {
         try {
-            $this->taskService->newTaskDTO($security, $request);
+            $this->taskService->newTaskDTO($request);
             $this->logger->info('Task created successfully');
         } catch (\Exception $exception) {
             $this->logger->error('An error occurred while adding new task', ['exception' => $exception]);

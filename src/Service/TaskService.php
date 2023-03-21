@@ -74,13 +74,9 @@ class TaskService
         return $data;
     }
 
-    public function getTasksOnCompletedForUserDTO(Security $security, bool $bool): array
+    public function getTasksOnCompletedForUserDTO(bool $bool): array
     {
-        $userId = $this->securityService->getCurrentUserId($security);
-
-        if ($userId === null) {
-            throw new UnauthorizedHttpException('Unauthorized', Response::HTTP_UNAUTHORIZED);
-        }
+        $userId = $this->securityService->getCurrentUserId();
 
         $user = $this->userRepository->find($userId);
 
@@ -132,13 +128,9 @@ class TaskService
     /**
      * @throws \Exception
      */
-    public function newTaskDTO(Security $security, Request $request): TaskDTO
+    public function newTaskDTO(Request $request): TaskDTO
     {
-        $userId = $this->securityService->getCurrentUserId($security);
-
-        if ($userId === null) {
-            throw new UnauthorizedHttpException('Unauthorized', Response::HTTP_UNAUTHORIZED);
-        }
+        $userId = $this->securityService->getCurrentUserId();
 
         $user = $this->userRepository->find($userId);
 
