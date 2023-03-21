@@ -49,7 +49,6 @@ services:
             MYSQL_PASSWORD: secret
             user: "1000"  # Set the user and group IDs
             group: "1000"
-            MYSQL_LOWER_CASE_TABLE_NAMES: 0
         networks:
             - nginx-php82-mysql8-node
 
