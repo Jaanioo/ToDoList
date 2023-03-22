@@ -6,7 +6,6 @@ use App\Exception\TaskNotFoundException;
 use App\Service\TaskService;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -20,27 +19,6 @@ class TaskController extends AbstractController
         private readonly LoggerInterface $logger
     ) {
     }
-
-//    #[Route('/user', name: 'tasks_for_user', methods: ['GET'])]
-//    public function displayAllTasksForUser(Security $security): JsonResponse
-//    {
-//        try {
-//            $data = $this->taskService->getAllTasksForUserDTO($security);
-////            $data = $this->taskService->getAllTasksForUserDTO($this->getUser());
-//            $this->logger->info('All users tasks displayed successfully');
-//        } catch (\Exception $exception) {
-//            $this->logger->error('An error occurred while displaying users tasks', ['exception' => $exception]);
-//            return $this->json(
-//                ['An error occurred: ' => $exception->getMessage()],
-//                Response::HTTP_NOT_FOUND
-//            );
-//        }
-//
-//        return $this->json(
-//            $data,
-//            Response::HTTP_OK
-//        );
-//    }
     #[Route('/user', name: 'tasks_for_user', methods: ['GET'])]
     public function displayAllTasksForUser(): JsonResponse
     {
