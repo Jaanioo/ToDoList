@@ -40,6 +40,7 @@ class TokenService
 
         $response = new Response();
         $response->headers->setCookie($cookie);
+        $response->headers->set('Authorization', 'Bearer' . $token);
 
         return [
             'token' => $token,
