@@ -5,6 +5,8 @@ namespace App\Service;
 use App\Entity\User;
 use Gesdinet\JWTRefreshTokenBundle\Model\RefreshTokenManagerInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
+use Symfony\Component\HttpFoundation\Cookie;
+use Symfony\Component\HttpFoundation\Response;
 
 class TokenService
 {
@@ -25,8 +27,23 @@ class TokenService
         $refreshToken->setValid($validityPeriod);
         $this->refreshTokenManager->save($refreshToken);
 
+        //Test for cookie
+        $cookie = new Cookie(
+            'jwt_token', //cookie name
+            $token, //cookie value
+            time() + 3600, //expiration time
+            '/', //path
+            null,
+            true,
+            true
+        );
+
+        $response = new Response();
+        $response->headers->setCookie($cookie);
+
         return [
             'token' => $token,
-            'refresh_token' => $refreshToken->getRefreshToken()];
+            'refresh_token' => $refreshToken->getRefreshToken(),
+            'cookie' => $cookie];
     }
 }
