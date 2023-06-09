@@ -77,7 +77,6 @@ class UserController extends AbstractController
 
             $token = $data['token'];
             $refreshToken = $data['refresh_token'];
-            $cookie = $data['cookie'];
             $this->logger->info('User logged in successfully');
         } catch (\Exception $exception) {
             $this->logger->error('An error occurred while logging in', ['exception' => $exception]);
@@ -89,8 +88,7 @@ class UserController extends AbstractController
 
         return $this->json(
             ['token' => $token,
-                'refresh_token' => $refreshToken,
-                'cookie' => $cookie],
+                'refresh_token' => $refreshToken],
             Response::HTTP_OK
         );
     }

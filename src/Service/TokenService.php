@@ -27,24 +27,8 @@ class TokenService
         $refreshToken->setValid($validityPeriod);
         $this->refreshTokenManager->save($refreshToken);
 
-        //Test for cookie
-        $cookie = new Cookie(
-            'jwt_token', //cookie name
-            $token, //cookie value
-            time() + 3600, //expiration time
-            '/', //path
-            null,
-            true,
-            true
-        );
-
-        $response = new Response();
-        $response->headers->setCookie($cookie);
-        $response->headers->set('Authorization', 'Bearer' . $token);
-
         return [
             'token' => $token,
-            'refresh_token' => $refreshToken->getRefreshToken(),
-            'cookie' => $cookie];
+            'refresh_token' => $refreshToken->getRefreshToken()];
     }
 }
